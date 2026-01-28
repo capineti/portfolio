@@ -1,0 +1,516 @@
+{
+    "name": "Hierarchical UI Swarm (Director & Specialists) v2",
+    "nodes": [
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "swarm-ui-gen",
+                "responseMode": "responseNode",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 1,
+            "position": [
+                0,
+                0
+            ],
+            "id": "webhook",
+            "name": "Webhook Trigger"
+        },
+        {
+            "parameters": {
+                "modelName": "models/gemini-1.5-pro-latest",
+                "options": {
+                    "temperature": 0.5,
+                    "systemInstruction": "Eres el DIRECTOR DE DISEÑO. Tu trabajo NO es diseñar, sino PLANIFICAR la arquitectura de la página.\n\nRecibes un prompt de usuario. Debes descomponerlo en una lista de COMPONENTES ESTRUCTURALES ordenados verticalmente.\n\nTIPOS DE AGENTES DISPONIBLES:\n- 'navbar': Para barras de navegación superiores.\n- 'hero': Para secciones principales con impacto visual.\n- 'grid': Para listas o tarjetas.\n- 'footer': Para pies de página.\n\nFORMATO DE SALIDA (JSON ARRAY):\n[\n  { \"type\": \"navbar\", \"instruction\": \"Navbar minimalista...\" },\n  { \"type\": \"grid\", \"instruction\": \"Grid de tarjetas...\" }\n]"
+                }
+            },
+            "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+            "typeVersion": 1,
+            "position": [
+                240,
+                200
+            ],
+            "id": "director-model",
+            "name": "Director Model",
+            "credentials": {
+                "googlePalmApi": {
+                    "id": "google-gemini-creds",
+                    "name": "Google Gemini Api"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "promptType": "define",
+                "text": "={{ $json.body.prompt }}",
+                "hasOutputParser": true,
+                "options": {}
+            },
+            "type": "@n8n/n8n-nodes-langchain.chainLlm",
+            "typeVersion": 1,
+            "position": [
+                240,
+                0
+            ],
+            "id": "director-agent",
+            "name": "🎩 THE DIRECTOR",
+            "inputs": [
+                "main",
+                "model"
+            ],
+            "outputs": [
+                "main"
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "// Parsear el plan del Director con seguridad\ntry {\n  const raw = $json.output.replace(/```json/g, '').replace(/```/g, '').trim();\n  const plan = JSON.parse(raw);\n  return plan.map(task => ({ json: task }));\n} catch (e) {\n  // Fallback simple si falla el parseo\n  return [{ json: { type: 'hero', instruction: 'Error parsing plan. Genera un hero default.' } }];\n}"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                560,
+                0
+            ],
+            "id": "plan-parser",
+            "name": "Parse Plan"
+        },
+        {
+            "parameters": {
+                "dataType": "string",
+                "value1": "={{ $json.type }}",
+                "rules": {
+                    "rules": [
+                        {
+                            "value2": "navbar",
+                            "outputKey": "navbar"
+                        },
+                        {
+                            "value2": "grid",
+                            "outputKey": "grid"
+                        },
+                        {
+                            "value2": "hero",
+                            "outputKey": "hero"
+                        }
+                    ]
+                },
+                "fallbackOutput": "content"
+            },
+            "type": "n8n-nodes-base.switch",
+            "typeVersion": 3,
+            "position": [
+                800,
+                0
+            ],
+            "id": "router",
+            "name": "🔀 Router"
+        },
+        {
+            "parameters": {
+                "modelName": "models/gemini-1.5-flash-latest",
+                "options": {
+                    "systemInstruction": "Genera JSON para un Navbar (FRAME, layoutMode: HORIZONTAL, width: FILL)."
+                }
+            },
+            "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+            "typeVersion": 1,
+            "position": [
+                1080,
+                -200
+            ],
+            "id": "navbar-model",
+            "name": "Navbar Model",
+            "credentials": {
+                "googlePalmApi": {
+                    "id": "google-gemini-creds",
+                    "name": "Google Gemini Api"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "promptType": "define",
+                "text": "={{ $json.instruction }}",
+                "hasOutputParser": true
+            },
+            "type": "@n8n/n8n-nodes-langchain.chainLlm",
+            "typeVersion": 1,
+            "position": [
+                1280,
+                -200
+            ],
+            "id": "agent-navbar",
+            "name": "Avg: Navbar",
+            "inputs": [
+                "main",
+                "model"
+            ],
+            "outputs": [
+                "main"
+            ]
+        },
+        {
+            "parameters": {
+                "modelName": "models/gemini-1.5-flash-latest",
+                "options": {
+                    "systemInstruction": "Genera JSON para un Grid Container (FRAME, layoutMode: VERTICAL)."
+                }
+            },
+            "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+            "typeVersion": 1,
+            "position": [
+                1080,
+                0
+            ],
+            "id": "grid-model",
+            "name": "Grid Model",
+            "credentials": {
+                "googlePalmApi": {
+                    "id": "google-gemini-creds",
+                    "name": "Google Gemini Api"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "promptType": "define",
+                "text": "={{ $json.instruction }}",
+                "hasOutputParser": true
+            },
+            "type": "@n8n/n8n-nodes-langchain.chainLlm",
+            "typeVersion": 1,
+            "position": [
+                1280,
+                0
+            ],
+            "id": "agent-grid",
+            "name": "Avg: Grid",
+            "inputs": [
+                "main",
+                "model"
+            ],
+            "outputs": [
+                "main"
+            ]
+        },
+        {
+            "parameters": {
+                "modelName": "models/gemini-1.5-flash-latest",
+                "options": {
+                    "systemInstruction": "Genera JSON para Hero Section con Imagen y Título."
+                }
+            },
+            "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+            "typeVersion": 1,
+            "position": [
+                1080,
+                200
+            ],
+            "id": "hero-model",
+            "name": "Hero Model",
+            "credentials": {
+                "googlePalmApi": {
+                    "id": "google-gemini-creds",
+                    "name": "Google Gemini Api"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "promptType": "define",
+                "text": "={{ $json.instruction }}",
+                "hasOutputParser": true
+            },
+            "type": "@n8n/n8n-nodes-langchain.chainLlm",
+            "typeVersion": 1,
+            "position": [
+                1280,
+                200
+            ],
+            "id": "agent-hero",
+            "name": "Avg: Hero",
+            "inputs": [
+                "main",
+                "model"
+            ],
+            "outputs": [
+                "main"
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "// Unir items y ensamblar\nconst allItems = $input.all();\nconst children = allItems.map(item => {\n  try {\n    const raw = item.json.output.replace(/```json/g, '').replace(/```/g, '').trim();\n    return JSON.parse(raw);\n  } catch(e) { return { type: 'FRAME', name: 'Error Node' }; }\n});\n\nreturn { json: {\n  name: \"AI Swarm Output\",\n  type: \"FRAME\",\n  layoutMode: \"VERTICAL\",\n  width: 1440,\n  itemSpacing: 0,\n  background: \"#FFFFFF\",\n  children: children\n} };"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                1600,
+                0
+            ],
+            "id": "assembler",
+            "name": "🧩 Assembler"
+        },
+        {
+            "parameters": {
+                "modelName": "models/gemini-1.5-pro-latest",
+                "options": {
+                    "systemInstruction": "Analiza el JSON. Vincula 'itemSpacing' a variables 'spacing/xx' y colores a 'color/xx'."
+                }
+            },
+            "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+            "typeVersion": 1,
+            "position": [
+                1840,
+                200
+            ],
+            "id": "engineer-model",
+            "name": "Engineer Model",
+            "credentials": {
+                "googlePalmApi": {
+                    "id": "google-gemini-creds",
+                    "name": "Google Gemini Api"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "promptType": "define",
+                "text": "={{ JSON.stringify($json) }}",
+                "hasOutputParser": true
+            },
+            "type": "@n8n/n8n-nodes-langchain.chainLlm",
+            "typeVersion": 1,
+            "position": [
+                1840,
+                0
+            ],
+            "id": "agent-engineer",
+            "name": "📏 Engineer",
+            "inputs": [
+                "main",
+                "model"
+            ],
+            "outputs": [
+                "main"
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "let raw = $json.output.replace(/```json/g, '').replace(/```/g, '').trim();\nreturn { json: JSON.parse(raw) };"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                2100,
+                0
+            ],
+            "id": "cleanup",
+            "name": "Cleanup"
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={{ $json }}",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1,
+            "position": [
+                2300,
+                0
+            ],
+            "id": "response",
+            "name": "Done"
+        }
+    ],
+    "connections": {
+        "Webhook Trigger": {
+            "main": [
+                [
+                    {
+                        "node": "🎩 THE DIRECTOR",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Director Model": {
+            "ai_languageModel": [
+                [
+                    {
+                        "node": "🎩 THE DIRECTOR",
+                        "type": "ai_languageModel",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "🎩 THE DIRECTOR": {
+            "main": [
+                [
+                    {
+                        "node": "Parse Plan",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Parse Plan": {
+            "main": [
+                [
+                    {
+                        "node": "🔀 Router",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "🔀 Router": {
+            "main": [
+                [
+                    {
+                        "node": "Avg: Navbar",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Avg: Grid",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Avg: Hero",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "🧩 Assembler",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Navbar Model": {
+            "ai_languageModel": [
+                [
+                    {
+                        "node": "Avg: Navbar",
+                        "type": "ai_languageModel",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Grid Model": {
+            "ai_languageModel": [
+                [
+                    {
+                        "node": "Avg: Grid",
+                        "type": "ai_languageModel",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Hero Model": {
+            "ai_languageModel": [
+                [
+                    {
+                        "node": "Avg: Hero",
+                        "type": "ai_languageModel",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Avg: Navbar": {
+            "main": [
+                [
+                    {
+                        "node": "🧩 Assembler",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Avg: Grid": {
+            "main": [
+                [
+                    {
+                        "node": "🧩 Assembler",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Avg: Hero": {
+            "main": [
+                [
+                    {
+                        "node": "🧩 Assembler",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "🧩 Assembler": {
+            "main": [
+                [
+                    {
+                        "node": "📏 Engineer",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Engineer Model": {
+            "ai_languageModel": [
+                [
+                    {
+                        "node": "📏 Engineer",
+                        "type": "ai_languageModel",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "📏 Engineer": {
+            "main": [
+                [
+                    {
+                        "node": "Cleanup",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Cleanup": {
+            "main": [
+                [
+                    {
+                        "node": "Done",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}

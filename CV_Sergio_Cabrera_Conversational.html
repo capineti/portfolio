@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CV Sergio Cabrera Capineti - Conversational Designer</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 0mm;
+            /* Controlamos márgenes desde dentro */
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            color: #333;
+            line-height: 1.4;
+            /* Un poco más compacto */
+            margin: 0;
+            background: #f5f5f5;
+            /* Background for screen viewing */
+            -webkit-print-color-adjust: exact;
+        }
+
+        .page {
+            background: white;
+            width: 21cm;
+            min-height: 29.7cm;
+            margin: 2cm auto;
+            padding: 2cm;
+            /* Printing margins handled here for screen simulation */
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            box-sizing: border-box;
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+
+            .page {
+                box-shadow: none;
+                margin: 0;
+                width: 100%;
+                min-height: auto;
+                /* Ajuste clave: Usar padding interno para simular márgenes de papel */
+                padding: 1.5cm 1.5cm !important;
+            }
+        }
+
+        /* Typography & Layout Compact */
+        h1 {
+            font-size: 22px;
+            /* Reducido */
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 0 0 2px 0;
+            /* Menos margen abajo */
+            color: #000;
+        }
+
+        h2 {
+            font-size: 13px;
+            /* Reducido */
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: #666;
+            border-bottom: 1px solid #ddd;
+            /* Línea fina y suave */
+            padding-bottom: 2px;
+            margin: 12px 0 6px 0;
+            /* MUY IMPORTANTE: Reducido drásticamente para ganar espacio */
+        }
+
+        .subtitle {
+            font-size: 14px;
+            /* Un pelín más pequeño */
+            color: #555;
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+
+        .contact-info {
+            font-size: 11px;
+            /* Más compacto */
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .contact-info span {
+            margin-right: 10px;
+        }
+
+        .contact-info a {
+            color: #0066cc !important;
+            /* Azul corporativo */
+            text-decoration: none !important;
+            /* Sin subrayado */
+            border: none !important;
+            /* Sin borde */
+        }
+
+        /* Asegurar enlaces en impresión */
+        @media print {
+            a[href]:after {
+                content: "";
+            }
+
+            .contact-info a {
+                text-decoration: none !important;
+                /* Sin subrayado al imprimir */
+                color: #0066cc !important;
+                border: none !important;
+            }
+        }
+
+        p {
+            font-size: 12px;
+            /* Reducido para encajar */
+            text-align: justify;
+            margin-bottom: 5px;
+        }
+
+        /* Experience Section */
+        .job-block {
+            margin-bottom: 8px;
+            /* Menos espacio entre trabajos */
+            page-break-inside: avoid;
+            /* Evitar que se parta un trabajo en dos páginas */
+        }
+
+        .job-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 2px;
+        }
+
+        .job-title {
+            font-weight: bold;
+            font-size: 14px;
+            /* Reducido */
+            color: #000;
+        }
+
+        .company {
+            font-weight: 600;
+        }
+
+        .dates {
+            font-size: 12px;
+            /* Reducido */
+            color: #666;
+            font-style: italic;
+        }
+
+        ul {
+            margin: 2px 0 8px 15px;
+            /* Más compacto */
+            padding: 0;
+        }
+
+        li {
+            font-size: 12px;
+            margin-bottom: 2px;
+            padding-left: 2px;
+        }
+
+        /* Skills Section */
+        .skills-container {
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .skill-tag {
+            font-weight: 600;
+            color: #222;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="page">
+        <!-- Header -->
+        <header>
+            <h1>Sergio Cabrera Capineti</h1>
+            <div class="subtitle">Senior Product & Conversational Designer | AI Workflows & Systems</div>
+            <div class="contact-info">
+                <span>España (Remoto)</span> |
+                <span><a href="mailto:sccapineti@gmail.com">sccapineti@gmail.com</a></span> |
+                <span><a href="https://www.linkedin.com/in/sergio-cabrera-0358b289/" target="_blank">LinkedIn</a></span>
+                |
+                <span><a href="https://sccapineti.framer.website/" target="_blank">Portfolio</a></span>
+            </div>
+        </header>
+
+        <!-- Profile -->
+        <section>
+            <h2>Resumen Profesional</h2>
+            <p>
+                Senior Designer especializado en la creación de <strong>sistemas conversacionales y automatizaciones
+                    inteligentes</strong>. Combino una sólida base en UX/UI con experiencia técnica avanzada en el
+                diseño de flujos de diálogo complejos utilizando <strong>LLMs (OpenAI, Gemini, Claude)</strong> y
+                herramientas de
+                orquestación como <strong>n8n</strong>. Experto en traducir necesidades de negocio en <strong>agentes
+                    virtuales efectivos</strong>, definiendo personalidades, gestionando contextos (memorias) y
+                estructurando datos no estructurados para la toma de decisiones. Capaz de liderar la estrategia de
+                producto desde el <em>prompting</em> hasta la interfaz visual final.
+            </p>
+        </section>
+
+        <!-- Training (Moved up) -->
+        <section>
+            <h2>Formación</h2>
+            <ul>
+                <li><strong>Máster en Inteligencia Artificial</strong> — BIG School & Universidad Isabel I (2025)</li>
+                <li><strong>Bootcamp Full-Stack Web Development</strong> — Ironhack (2019)</li>
+                <li><strong>Máster en Product Design</strong> — Elisava, Barcelona School of Design and Engineering
+                    (2017)</li>
+            </ul>
+        </section>
+
+        <!-- Areas of Expertise -->
+        <section>
+            <h2>Áreas de Especialización</h2>
+            <div class="skills-container">
+                <span class="skill-tag">Diseño Conversacional (VUI)</span> ·
+                <span class="skill-tag">Diseño de Prompts (System Instructions)</span> ·
+                <span class="skill-tag">Flujos con Agentes IA (OpenAI/Gemini/Claude)</span> ·
+                <span class="skill-tag">Automatización (n8n)</span> ·
+                <span class="skill-tag">Arquitectura de Información</span> ·
+                <span class="skill-tag">UX End-to-End</span> ·
+                <span class="skill-tag">Design Systems</span> ·
+                <span class="skill-tag">Análisis de Sentimiento y Datos</span>
+            </div>
+        </section>
+
+        <!-- Professional Experience -->
+        <section>
+            <h2>Experiencia Profesional</h2>
+
+            <!-- Job 1 -->
+            <div class="job-block">
+                <div class="job-header">
+                    <div class="job-title"><span class="company">Floxfy Ltd / Proyecto LxArch</span> — Lead
+                        Conversational & Product Designer</div>
+                    <div class="dates">Mar 2025 – Actualidad · Remoto</div>
+                </div>
+                <p style="font-size: 13px; font-style: italic; margin-bottom: 8px;">Liderazgo en el diseño y desarrollo
+                    de un ecosistema de agentes inteligentes para el análisis de ventas y rendimiento, integrando lógica
+                    conversacional avanzada.</p>
+                <ul>
+                    <li><strong>Diseño de Flujos Conversacionales (AI Agents):</strong> Arquitectura lógica para agentes
+                        ("Director de Ventas", "Auditor") capaces de mantener el contexto, analizar transcripciones de
+                        llamadas reales y generar feedback conversacional empático y estructurado.</li>
+                    <li><strong>Orquestación con n8n & OpenAI:</strong> Implementación de flujos complejos que integran
+                        disparadores, clasificación de intents, gestión de memoria y herramientas de NLP para procesar
+                        lenguaje natural a escala.</li>
+                    <li><strong>Prompt Engineering & Persona Design:</strong> Redacción y ajuste de <em>System
+                            Prompts</em> para definir la voz, tono y reglas de comportamiento, asegurando respuestas
+                        alineadas con la marca y objetivos de negocio.</li>
+                    <li><strong>Validación basada en Datos:</strong> Iteración de prompts basada en el análisis de
+                        outputs para mejorar la precisión y calidad de las respuestas cualitativas y cuantitativas.</li>
+                    <li><strong>Interfaz de Usuario Aumentada:</strong> Diseño del Dashboard visual que presenta la
+                        información conversacional de forma accionable.</li>
+                </ul>
+            </div>
+
+            <!-- Job 2 -->
+            <div class="job-block">
+                <div class="job-header">
+                    <div class="job-title"><span class="company">Salutare</span> — Senior Product Designer (Service &
+                        Complex Flows)</div>
+                    <div class="dates">Ene 2021 – Mar 2025 · Londres · Remoto</div>
+                </div>
+                <ul>
+                    <li>Diseño de servicios críticos para el sistema sanitario (NHS), enfocados en la claridad de la
+                        información y la reducción de la carga cognitiva en procesos de alta complejidad.</li>
+                    <li>Definición de mapas de interacción y <em>journeys</em> de usuario donde la comunicación precisa
+                        es vital para la seguridad del paciente.</li>
+                    <li>Accesibilidad (WCAG) y estandarización de patrones de lenguaje para audiencias diversas.</li>
+                </ul>
+            </div>
+
+            <!-- Job 3 -->
+            <div class="job-block">
+                <div class="job-header">
+                    <div class="job-title"><span class="company">2Coders Studio</span> — Design System Specialist</div>
+                    <div class="dates">Ene 2024 – Mar 2024 · Remoto</div>
+                </div>
+                <ul>
+                    <li>Auditoría y reestructuración de sistemas de diseño, estableciendo reglas claras de comunicación
+                        y documentación técnica entre diseño y desarrollo.</li>
+                </ul>
+            </div>
+
+            <!-- Job 4 -->
+            <div class="job-block">
+                <div class="job-header">
+                    <div class="job-title"><span class="company">Nabrü</span> — Cofundador & Product Lead</div>
+                    <div class="dates">Jun 2019 – Jul 2024 · Barcelona</div>
+                </div>
+                <ul>
+                    <li>Definición de tono de voz, estrategia de comunicación y diseño de producto end-to-end
+                        multicanal.</li>
+                </ul>
+            </div>
+        </section>
+
+
+
+        <!-- Tech Stack -->
+        <section>
+            <h2>Tech Stack</h2>
+            <div class="skills-container" style="color: #444;">
+                n8n (Advanced Workflows) · Antigravity · LLMs (OpenAI, Gemini, Claude) · Figma · JavaScript (Lógica
+                básica) · JSON
+                (Estructuración de datos)
+            </div>
+        </section>
+
+    </div>
+
+</body>
+
+</html>

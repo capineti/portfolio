@@ -1,0 +1,106 @@
+{
+    "name": "Check Design v43 (POLLING)",
+    "nodes": [
+        {
+            "parameters": {
+                "path": "check-design-v43",
+                "responseMode": "responseNode",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 1,
+            "position": [
+                0,
+                0
+            ],
+            "id": "webhook-polling-v43",
+            "name": "Webhook Polling v43"
+        },
+        {
+            "parameters": {
+                "operation": "executeQuery",
+                "query": "SELECT id, payload, createdAt FROM figma_headless_sessions ORDER BY id DESC LIMIT 1;",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.postgres",
+            "typeVersion": 1,
+            "position": [
+                220,
+                0
+            ],
+            "id": "postgres-query-v43",
+            "name": "Get Last Design",
+            "credentials": {
+                "postgres": {
+                    "id": "902j8s3k2l1m4n5o",
+                    "name": "Supabase DB"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "jsCode": "// Formatear respuesta para el plugin\nconst row = $input.first().json;\n\nif (!row) {\n  return [{ json: { timestamp: 0, design: null } }];\n}\n\nlet output = {};\ntry {\n  if (typeof row.payload === 'string') {\n     output = JSON.parse(row.payload);\n  } else {\n     output = row.payload;\n  }\n} catch(e) { output = {}; }\n\nreturn [{\n  json: {\n    timestamp: row.id, // Usamos el ID autoincremental como timestamp/version\n    design: output\n  }\n}];"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                440,
+                0
+            ],
+            "id": "format-response-v43",
+            "name": "Format Response"
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={{ JSON.stringify($json) }}",
+                "options": {
+                    "responseCode": 200
+                }
+            },
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1,
+            "position": [
+                660,
+                0
+            ],
+            "id": "respond-v43",
+            "name": "Respond to Plugin"
+        }
+    ],
+    "connections": {
+        "Webhook Polling v43": {
+            "main": [
+                [
+                    {
+                        "node": "Get Last Design",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Get Last Design": {
+            "main": [
+                [
+                    {
+                        "node": "Format Response",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Format Response": {
+            "main": [
+                [
+                    {
+                        "node": "Respond to Plugin",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}

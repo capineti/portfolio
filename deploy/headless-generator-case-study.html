@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Headless Generator Case Study | Sergio Cabrera</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            /* Palette */
+            --bg-color: #0f0f12;
+            /* Dark mode for tech feel */
+            --surface: #1c1c21;
+            --text-primary: #ffffff;
+            --text-secondary: #a1a1aa;
+            --accent: #3b82f6;
+            /* Tech Blue */
+            --accent-glow: rgba(59, 130, 246, 0.4);
+            --code-bg: #111113;
+            --border: #2e2e33;
+
+            /* Typography */
+            --font-main: 'Inter', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        /* RESET */
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4 {
+            margin: 0;
+            letter-spacing: -0.02em;
+        }
+
+        p {
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+            font-size: 16px;
+            font-weight: 300;
+        }
+
+        ul {
+            padding-left: 20px;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+        }
+
+        li {
+            margin-bottom: 12px;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        /* HEADER */
+        header {
+            padding: 24px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            background: rgba(15, 15, 18, 0.9);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+        }
+
+        .logo {
+            font-weight: 700;
+            font-size: 14px;
+            letter-spacing: 1px;
+        }
+
+        .back-link {
+            font-size: 14px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: color 0.2s;
+        }
+
+        .back-link:hover {
+            color: var(--text-primary);
+        }
+
+        /* HERO */
+        .case-hero {
+            padding: 100px 24px 60px 24px;
+            max-width: 1000px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .pre-title {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 16px;
+            display: block;
+        }
+
+        .case-hero h1 {
+            font-size: 56px;
+            line-height: 1.1;
+            margin-bottom: 24px;
+            background: linear-gradient(180deg, #fff 0%, #aaa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .case-hero .subtitle {
+            font-size: 20px;
+            max-width: 600px;
+            margin: 0 auto 40px auto;
+        }
+
+        /* STATS GRID */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            max-width: 900px;
+            margin: 0 auto 80px auto;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 24px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            display: block;
+            color: var(--text-primary);
+        }
+
+        .stat-label {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-secondary);
+        }
+
+        /* MAIN CONTENT */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        .section-title {
+            font-size: 28px;
+            margin-bottom: 32px;
+            border-left: 4px solid var(--accent);
+            padding-left: 20px;
+            line-height: 1.2;
+        }
+
+        .image-block {
+            margin: 60px 0;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .image-block img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .image-caption {
+            background: var(--surface);
+            padding: 16px 24px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .image-caption::before {
+            content: "";
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            border-radius: 50%;
+            display: block;
+        }
+
+        /* TECH STACK */
+        .tech-stack {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 40px;
+        }
+
+        .tech-tag {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-family: var(--font-mono);
+            color: var(--text-secondary);
+        }
+
+        /* CODE SNIPPET (Visual Flair) */
+        .code-snippet {
+            background: var(--code-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 24px;
+            font-family: var(--font-mono);
+            font-size: 13px;
+            line-height: 1.7;
+            overflow-x: auto;
+            color: #d4d4d4;
+            margin-bottom: 40px;
+        }
+
+        .code-green {
+            color: #b5cea8;
+        }
+
+        .code-blue {
+            color: #9cdcfe;
+        }
+
+        .code-yellow {
+            color: #dcdcaa;
+        }
+
+        /* FOOTER */
+        .case-footer {
+            margin-top: 100px;
+            padding: 80px 0;
+            border-top: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .next-project {
+            font-size: 14px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 16px;
+            display: block;
+        }
+
+        .next-title {
+            font-size: 32px;
+            font-weight: 700;
+            transition: color 0.2s;
+        }
+
+        .next-title:hover {
+            color: var(--accent);
+        }
+
+        @media(max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .case-hero h1 {
+                font-size: 40px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <a href="portfolio.html" class="back-link">← Back to Portfolio</a>
+        <div class="logo">HEADLESS GENERATOR v2.1</div>
+    </header>
+
+    <div class="case-hero">
+        <span class="pre-title">Internal Tooling • Design Ops • 2025</span>
+        <h1>Automatizando la creatividad UI con Sistemas Vectoriales</h1>
+        <p class="subtitle">Cómo eliminé el "Ghost Work" del diseño usando Figma, Pinecone y Claude 3.5 Sonnet.</p>
+    </div>
+
+    <!-- KPI / STATS -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <span class="stat-value">70%</span>
+            <span class="stat-label">Faster Prototyping</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-value">0%</span>
+            <span class="stat-label">Hallucinations</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-value">1500+</span>
+            <span class="stat-label">Components Indexed</span>
+        </div>
+    </div>
+
+    <div class="container">
+
+        <div class="image-block">
+            <img src="headless_generator_split.png" alt="Split screen showing Code Input vs Visual Output">
+            <div class="image-caption">De Código a UI: El sistema interpreta JSON estructurado y renderiza componentes
+                vectoriales reales.</div>
+        </div>
+
+        <section>
+            <h2 class="section-title">El Problema: La "Brecha Semántica" en la IA Generativa</h2>
+            <p>
+                Las herramientas de generación de UI como Galileo o V0 son impresionantes, pero tienen un defecto fatal
+                para equipos de producto maduros: <strong>ignoran tu sistema de diseño existente</strong>. Generan UIs
+                que "parecen" buenas, pero que son inútiles para producción porque no usan tus tokens, fuentes o
+                componentes.
+            </p>
+            <p>
+                El equipo de diseño perdía horas "traduciendo" sugerencias de IA a componentes reales de Figma.
+                Necesitábamos un "traductor" que hablara nuestro idioma visual nativo.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="section-title">La Solución: RAG (Retrieval-Augmented Generation) para UI</h2>
+            <p>
+                Desarrollé <strong>"Headless Generator"</strong>, un plugin personalizado que actúa como orquestador
+                entre el lenguaje natural y nuestro Design System. A diferencia de un generador de imágenes, este
+                sistema ensambla nodos reales de Figma.
+            </p>
+
+            <div class="tech-stack">
+                <span class="tech-tag">Figma Plugin API</span>
+                <span class="tech-tag">n8n (Orchestrator)</span>
+                <span class="tech-tag">Pinecone (Vector DB)</span>
+                <span class="tech-tag">Claude 3.5 Sonnet</span>
+                <span class="tech-tag">Javascript / Typescript</span>
+            </div>
+
+            <div class="image-block">
+                <img src="headless_architecture.png" alt="Technical Architecture Diagram">
+                <div class="image-caption">Arquitectura Técnica: Flujo de datos desde el Prompt hasta el Renderizado.
+                </div>
+            </div>
+
+            <h3>Cómo funciona (Under the Hood):</h3>
+            <ol style="margin-bottom: 40px; color: var(--text-secondary); padding-left: 20px;">
+                <li style="margin-bottom: 16px;"><strong>Ingesta (Embedding):</strong> Un script escanea nuestro Figma
+                    Design System y convierte cada componente en un vector matemático, almacenando sus propiedades y
+                    descripción semántica en Pinecone.</li>
+                <li style="margin-bottom: 16px;"><strong>Interpretación:</strong> Cuando el usuario escribe "Login
+                    screen moderna", Claude 3.5 analiza la solicitud y consulta a Pinecone: <em>"¿Qué componentes
+                        tenemos que se parezcan a un input de email?"</em>.</li>
+                <li style="margin-bottom: 16px;"><strong>Ensamblaje (Assembly):</strong> n8n devuelve un JSON
+                    estructurado con los IDs exactos de los componentes. El plugin de Figma lee este JSON e instancia
+                    los componentes reales, aplicando AutoLayout automáticamente.</li>
+            </ol>
+
+        </section>
+
+        <section>
+            <h2 class="section-title">Retos Técnicos: Variable Bindings</h2>
+            <p>
+                Uno de los mayores desafíos fue asegurar que el espaciado y los colores respetaran las <strong>Variables
+                    de Figma</strong> (Tokens). Tuve que escribir una función personalizada en el plugin
+                (`findVariableByName`) que mapea valores crudos a sus tokens correspondientes en tiempo de ejecución.
+            </p>
+
+            <div class="code-snippet">
+                <span class="code-green">// Fragmento real de code.js (v2.1)</span>
+                <span class="code-blue">async function</span> <span class="code-yellow">bindVariable</span>(node, field,
+                varName, type) {
+                <span class="code-blue">if</span> (!varName) <span class="code-blue">return</span>;
+                <span class="code-blue">const</span> varId = <span class="code-blue">await</span> <span
+                    class="code-yellow">findVariableByName</span>(varName, type);
+                <span class="code-blue">if</span> (varId) {
+                <span class="code-blue">try</span> {
+                node.<span class="code-yellow">setBoundVariable</span>(field, varId);
+                console.<span class="code-yellow">log</span>(<span class="code-green">`Bound ${varName} to
+                    ${field}`</span>);
+                } <span class="code-blue">catch</span> (e) {
+                console.<span class="code-yellow">warn</span>(e);
+                }
+                }
+                }
+            </div>
+
+            <p>
+                Esto garantiza que si cambiamos el token de "espaciado-md" en el futuro, todas las interfaces generadas
+                por la IA se actualizarán automáticamente. <strong>Esto es lo que separa un juguete de una herramienta
+                    Enterprise.</strong>
+            </p>
+        </section>
+
+    </div>
+
+    <div class="case-footer">
+        <div class="container">
+            <span class="next-project">Next Case Study</span>
+            <a href="#" class="next-title">Floxfy / LxArch Architecture →</a>
+        </div>
+    </div>
+
+</body>
+
+</html>

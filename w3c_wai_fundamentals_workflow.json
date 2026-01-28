@@ -1,0 +1,263 @@
+{
+    "name": "W3C WAI Fundamentals Scraper (Fixed No-Loop)",
+    "nodes": [
+        {
+            "parameters": {},
+            "id": "7d9b8e2f-1a2b-4c3d-5e6f-7a8b9c0d1e2f",
+            "name": "Manual Trigger",
+            "type": "n8n-nodes-base.manualTrigger",
+            "typeVersion": 1,
+            "position": [
+                460,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "values": {
+                    "string": [
+                        {
+                            "name": "document_id",
+                            "value": "abilities_visual"
+                        },
+                        {
+                            "name": "document_title",
+                            "value": "Visual Disabilities"
+                        },
+                        {
+                            "name": "source_url",
+                            "value": "https://www.w3.org/WAI/people-use-web/abilities-barriers/visual/"
+                        },
+                        {
+                            "name": "source",
+                            "value": "W3C WAI"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "id": "a1b2c3d4-e5f6-7890-a1b2-c3d4e5f67890",
+            "name": "Document Config",
+            "type": "n8n-nodes-base.set",
+            "typeVersion": 1,
+            "position": [
+                680,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "url": "={{ $json.source_url }}",
+                "responseFormat": "string",
+                "options": {}
+            },
+            "id": "b2c3d4e5-f678-90a1-b2c3-d4e5f67890a1",
+            "name": "Fetch HTML",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 3,
+            "position": [
+                900,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "dataPropertyName": "data",
+                "extractionValues": {
+                    "values": [
+                        {
+                            "key": "raw_main",
+                            "cssSelector": "main, [role=\"main\"], article, #main",
+                            "returnArray": false,
+                            "returnValue": "html"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "id": "c3d4e5f6-7890-a1b2-c3d4-e5f67890a1b2",
+            "name": "Extract Sections",
+            "type": "n8n-nodes-base.htmlExtract",
+            "typeVersion": 1,
+            "position": [
+                1120,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "const items = $input.all();\nconst html = items[0].json.raw_main || \"\";\n\nconst parts = html.split(/<h2\\b/i);\n\nconst sections = [];\n\n// Parte 0: Introducción (antes del primer h2)\nif (parts[0] && parts[0].trim().length > 0) {\n    if (parts[0].match(/<(p|ul)/i)) {\n         sections.push({\n            section_id: \"introduction\",\n            title: \"Introduction\",\n            raw_html: parts[0]\n        });\n    }\n}\n\n// Resto de partes\nfor (let i = 1; i < parts.length; i++) {\n    const part = parts[i];\n    const endH2 = part.indexOf('</h2>');\n    \n    if (endH2 !== -1) {\n        const rawHeader = part.substring(0, endH2); \n        const content = part.substring(endH2 + 5);\n        \n        const titleStart = rawHeader.lastIndexOf('>');\n        let title = \"Unknown\";\n        if (titleStart !== -1) {\n            title = rawHeader.substring(titleStart + 1).replace(/<[^>]+>/g, '').trim();\n        }\n        \n        // FILTRO DE BASURA MEJORADO\n        if (\n          title.toLowerCase().includes(\"help improve\") ||\n          title.toLowerCase().includes(\"language\") ||\n          title.toLowerCase().includes(\"related wai resources\") ||\n          title.toLowerCase().includes(\"video:\") \n        ) {\n          continue;\n        }\n        \n        let cleanContent = content.split(/(<div class=\"help\"|<footer|<aside id=\"helpimprove\")/i)[0];\n        \n        if (title && cleanContent.trim().length > 0) {\n             const sectionId = title.toLowerCase().replace(/[^a-z0-9]+/g, \"_\");\n             sections.push({\n                 section_id: sectionId,\n                 title: title,\n                 raw_html: cleanContent\n             });\n        }\n    }\n}\n\n// Importante: devolvemos un array de objetos JSON para que el siguiente nodo procese TODOS\nreturn sections.map(s => ({ json: s }));"
+            },
+            "id": "d4e5f678-90a1-b2c3-d4e5-f67890a1b2c3",
+            "name": "Map Sections",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                1340,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "const items = $input.all();\nconst stripTags = (html) => html.replace(/<[^>]+>/g, '').trim();\n\nconst returnItems = [];\n\n// ITERAMOS SOBRE TODOS LOS ITEMS (SECCIONES) RECIBIDOS\nfor (const item of items) {\n    const html = item.json.raw_html || \"\";\n    const sectionId = item.json.section_id;\n    \n    const blockRegex = /<(p|ul)\\b[^>]*>([\\s\\S]*?)<\\/\\1>/gi;\n    \n    const blocks = [];\n    let index = 0;\n    let match;\n    \n    while ((match = blockRegex.exec(html)) !== null) {\n      const tagName = match[1].toLowerCase();\n      const innerHtml = match[2];\n    \n      if (tagName === 'p') {\n        const text = stripTags(innerHtml);\n        if (text && text.replace(/&nbsp;/g, '').trim().length > 0) {\n          blocks.push({\n            block_id: `${sectionId}_block_${index++}`,\n            type: \"explanation\",\n            content: text,\n            source: \"W3C WAI\"\n          });\n        }\n      } else if (tagName === 'ul') {\n        const liRegex = /<li\\b[^>]*>([\\s\\S]*?)<\\/li>/gi;\n        const listItems = [];\n        let liMatch;\n        while ((liMatch = liRegex.exec(innerHtml)) !== null) {\n          const liText = stripTags(liMatch[1]).trim();\n          if (liText) listItems.push(liText);\n        }\n        \n        if (listItems.length > 0) {\n          blocks.push({\n            block_id: `${sectionId}_list_${index++}`,\n            type: \"list\",\n            content: listItems,\n            source: \"W3C WAI\"\n          });\n        }\n      }\n    }\n    \n    // Solo agregamos la sección si tiene bloques válidos\n    if (blocks.length > 0) {\n        returnItems.push({\n            json: {\n                section_id: sectionId,\n                title: item.json.title,\n                blocks\n            }\n        });\n    }\n}\n\nreturn returnItems;"
+            },
+            "id": "f67890a1-b2c3-d4e5-f678-90a1b2c3d4e5",
+            "name": "Create Blocks",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                1560,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "// Cogemos TODAS las secciones procesadas\nconst sections = $('Create Blocks').all().map(i => i.json);\n\n// Configuración del documento\nconst configNode = $('Document Config').first().json;\n\nreturn [{\n  json: {\n    document_id: configNode.document_id,\n    title: configNode.document_title,\n    source: configNode.source_url,\n    sections\n  }\n}];"
+            },
+            "id": "7890a1b2-c3d4-e5f6-7890-a1b2c3d4e5f6",
+            "name": "Assemble Document",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                1780,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "mode": "jsonToBinary",
+                "convertAllData": true,
+                "destinationProperty": "data",
+                "options": {
+                    "encoding": "utf8",
+                    "fileName": "={{ $json.document_id + '.json' }}",
+                    "mimeType": "application/json"
+                }
+            },
+            "id": "convert_to_binary",
+            "name": "Convert to Binary",
+            "type": "n8n-nodes-base.moveBinaryData",
+            "typeVersion": 1,
+            "position": [
+                2000,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "binaryData": true,
+                "name": "={{ $('Assemble Document').first().json.document_id + '.json' }}",
+                "resolveData": true,
+                "options": {
+                    "parents": [
+                        "1WPuwI87fx9cKFzVnIHTG7MYVaeEV8udX"
+                    ]
+                }
+            },
+            "id": "drive_upload",
+            "name": "Google Drive",
+            "type": "n8n-nodes-base.googleDrive",
+            "typeVersion": 3,
+            "position": [
+                2200,
+                300
+            ],
+            "credentials": {
+                "googleDriveOAuth2Api": {
+                    "id": "c8RhhwWsrFFMDWAC",
+                    "name": "Google Drive account"
+                }
+            }
+        }
+    ],
+    "connections": {
+        "Manual Trigger": {
+            "main": [
+                [
+                    {
+                        "node": "Document Config",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Document Config": {
+            "main": [
+                [
+                    {
+                        "node": "Fetch HTML",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Fetch HTML": {
+            "main": [
+                [
+                    {
+                        "node": "Extract Sections",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Extract Sections": {
+            "main": [
+                [
+                    {
+                        "node": "Map Sections",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Map Sections": {
+            "main": [
+                [
+                    {
+                        "node": "Create Blocks",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Create Blocks": {
+            "main": [
+                [
+                    {
+                        "node": "Assemble Document",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Assemble Document": {
+            "main": [
+                [
+                    {
+                        "node": "Convert to Binary",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Convert to Binary": {
+            "main": [
+                [
+                    {
+                        "node": "Google Drive",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}

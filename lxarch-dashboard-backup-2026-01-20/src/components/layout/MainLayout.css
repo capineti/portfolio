@@ -1,0 +1,325 @@
+/* Main Layout Styles */
+.layout-root {
+    display: flex;
+    height: 100vh;
+    width: 100vw;
+    background-color: var(--bg-app);
+    color: var(--text-main);
+    transition: background-color 0.3s ease, color 0.3s ease;
+    overflow: hidden;
+}
+
+.layout-header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    /* Removed flex here to let container handle it */
+    height: var(--header-height);
+    z-index: 100;
+    /* Transparent initially */
+    background: transparent;
+    transition: background-color 0.3s ease, border-bottom 0.3s ease, backdrop-filter 0.3s ease;
+    border-bottom: 1px solid transparent;
+}
+
+.header-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    /* Ensure padding matches main content if it had any additional, but 0 auto handles centering */
+}
+
+.layout-header.scrolled {
+    /* Glassmorphism / Solid on Scroll */
+    background: rgba(15, 15, 15, 0.85);
+    /* Neutral dark, less blue */
+    /* Dark solid-ish */
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Ensure logo is always white when scrolled (on dark bg) */
+.layout-header.scrolled .logo-img {
+    filter: brightness(0) invert(1);
+}
+
+/* Light mode override for scrolled state if needed, but user asked for "same color" likely referring to the dark ref */
+[data-theme="light"] .layout-header.scrolled {
+    background: rgba(15, 15, 15, 0.85);
+    /* Match neutral dark */
+    /* Dark gray with alpha as requested */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+}
+
+[data-theme="light"] .layout-header.scrolled .user-name {
+    color: #ffffff;
+}
+
+[data-theme="light"] .layout-header.scrolled .user-role {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+[data-theme="light"] .layout-header.scrolled .theme-toggle-btn {
+    border-color: rgba(255, 255, 255, 0.3);
+    color: #ffffff;
+}
+
+[data-theme="light"] .layout-header.scrolled .logout-btn {
+    color: #ffffff;
+}
+
+[data-theme="light"] .layout-header.scrolled .logo-img {
+    filter: brightness(0) invert(1);
+}
+
+/* If user wants ALWAYS dark header on scroll even in light mode (to match image 0) */
+/* Un-comment below if that's the feedback: */
+/* 
+[data-theme="light"] .layout-header.scrolled {
+    background: rgba(31, 41, 55, 0.95);
+    color: white; 
+} 
+*/
+
+[data-theme="dark"] .layout-header {
+    background: transparent;
+    border-bottom: 1px solid transparent;
+}
+
+[data-theme="dark"] .layout-header.scrolled {
+    background: rgba(15, 15, 15, 0.85);
+    /* Match neutral dark */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.header-logo .logo-img {
+    width: 140px;
+    height: auto;
+    display: block;
+    /* Invert for light text readability if needed, but logo is likely dark */
+}
+
+/* Invert logo in dark mode OR if background is dark in light mode partials? 
+   Actually, the hero image is light, so dark logo is fine. 
+   But "Hola Caterina" is dark text, so logo should probably be dark. 
+   Wait, user uploaded image is Light grey. Dark logo is good. */
+
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+}
+
+/* Reuse existing user-profile and theme-toggle-btn styles but ensure they look good on transparent bg */
+
+
+/* Navigation Items - Removed */
+
+/* Sidebar Footer converted to Header Controls */
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+}
+
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+/* ... existing user profile styles ... */
+
+/* Theme toggle adjustment for vertical layout */
+.theme-toggle-btn {
+    /* ... existing styles ... */
+    margin-left: 2px;
+    /* Slight alignment fix if needed */
+}
+
+.user-avatar-img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: #d1d5db;
+    /* Placeholder grey */
+    background-image: url('https://i.pravatar.cc/150?u=caterina');
+    background-size: cover;
+}
+
+.user-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.user-name {
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: #000000;
+}
+
+[data-theme="dark"] .user-name {
+    color: var(--text-main);
+}
+
+.user-role {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    /* Increased weight */
+}
+
+/* Logout Button */
+.logout-btn {
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    transition: all 0.2s ease;
+}
+
+.logout-btn:hover {
+    background-color: rgba(220, 38, 38, 0.1);
+    color: #dc2626;
+}
+
+.theme-toggle-btn {
+    background: var(--primary);
+    /* Orange background as requested */
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 1.1rem;
+    padding: 6px;
+    border-radius: 50%;
+    /* Circle btn */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    transition: all 0.2s ease;
+}
+
+.theme-icon {
+    display: flex;
+    filter: brightness(0) invert(1);
+    /* Reliably turns emoji into solid white */
+}
+
+.theme-toggle-btn:hover {
+    background-color: #1C1C1C;
+    border-color: var(--text-muted);
+}
+
+/* Main Content Area */
+.layout-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    background-color: var(--bg-app);
+}
+
+/* Dashboard specific background with filter control */
+.layout-main.dashboard-bg {
+    position: relative;
+    /* Ensure stacking context */
+    overflow-x: hidden;
+}
+
+.layout-main.dashboard-bg::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-image: url('../../assets/hero-bg-light.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-color: #585552;
+    /* Color picked from the bottom of the provided image to blend */
+
+    /* filter removed to show original clarity */
+    z-index: 0;
+    pointer-events: none;
+    transition: background-image 0.3s ease;
+}
+
+[data-theme="dark"] .layout-main.dashboard-bg::before {
+    /* Use same image as light mode to prevent shifting/resizing */
+    background-image: url('../../assets/hero-bg-light.jpg');
+    background-color: #1f2937;
+    /* Darken the light image to match the previous dark tone */
+    filter: brightness(0.4) saturate(1.1);
+}
+
+/* Ensure content sits above the background */
+.layout-main.dashboard-bg .main-content {
+    position: relative;
+    z-index: 1;
+}
+
+.main-content {
+    /* Padding top to account for fixed header */
+    padding-top: var(--header-height);
+    max-width: 1400px;
+    /* Reduced from 1600px to bring edges in */
+    margin: 0 auto;
+    width: 100%;
+    transition: padding 0.3s ease;
+}
+
+.main-content.full-height {
+    padding-top: var(--header-height);
+    height: 100%;
+}
+
+/* Playground Button Custom Styles */
+.playground-btn {
+    background-color: #000000;
+    /* Default Light Mode: Black BG */
+    color: #ffffff;
+    /* White Icon */
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    transition: all 0.2s ease;
+    margin-right: 4px;
+    /* Slight spacing */
+}
+
+.playground-btn:hover {
+    transform: scale(1.05);
+    opacity: 0.9;
+}
+
+/* Dark Mode Override */
+[data-theme="dark"] .playground-btn {
+    background-color: #ffffff;
+    /* Dark Mode: White BG */
+    color: #000000;
+    /* Black Icon */
+}

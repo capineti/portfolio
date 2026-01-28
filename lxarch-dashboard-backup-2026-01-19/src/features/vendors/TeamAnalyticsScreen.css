@@ -1,0 +1,438 @@
+/* Existing styles... */
+
+/* Weeks List Styles (Copied/Adapted from VendorAnalyticsScreen) */
+/* Weeks List Styles (Copied/Adapted from VendorAnalyticsScreen) */
+/* Weeks List Styles (Copied/Adapted from VendorAnalyticsScreen) */
+.weeks-list-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    /* Slightly reduced gap */
+    max-height: 350px;
+    overflow-y: auto;
+    padding-right: 12px;
+}
+
+.weeks-list-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.weeks-list-container::-webkit-scrollbar-track {
+    background: transparent;
+    margin: 4px 0;
+}
+
+.weeks-list-container::-webkit-scrollbar-thumb {
+    background-color: var(--lx-orange);
+    border-radius: 99px;
+    border-bottom: 200px solid transparent;
+    /* Pushes the painted area to the top */
+    border-top: 0px solid transparent;
+    /* No space at top, so it starts at top */
+    background-clip: content-box;
+    min-height: 30px;
+}
+
+.week-item-row {
+    background-color: var(--bg-card);
+    border-radius: 12px;
+    padding: 1.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: 1px solid var(--border);
+    color: var(--text-main);
+}
+
+.week-item-row.current-week {
+    border-color: #f97316;
+    /* Orange-500 */
+    background-color: rgba(249, 115, 22, 0.1);
+    /* Orange with low opacity */
+}
+
+.week-item-row:hover {
+    transform: translateX(4px);
+    border-color: var(--primary);
+    background-color: var(--bg-card-hover);
+}
+
+.week-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.week-label {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--text-main);
+}
+
+.week-date {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.week-action {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.week-count-badge {
+    background-color: #f3f4f6;
+    padding: 0.5rem 1rem;
+    border-radius: 99px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #374151;
+}
+
+.week-arrow {
+    color: #f97316;
+    font-weight: 700;
+    font-size: 1.25rem;
+}
+
+/* Redefining styles that were already present but updating them */
+.team-screen-container {
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+    color: var(--text-main);
+    animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.team-header-block {
+    margin-bottom: 2rem;
+}
+
+.ts-back-btn {
+    background: none;
+    border: none;
+    color: #6b7280;
+    cursor: pointer;
+    font-size: 0.95rem;
+    padding: 0;
+    margin-bottom: 1.5rem;
+    transition: color 0.2s;
+}
+
+.ts-back-btn:hover {
+    color: #374151;
+}
+
+.team-info-block h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem 0;
+    color: var(--text-main);
+}
+
+.team-info-block p {
+    color: var(--text-muted);
+    margin: 0;
+}
+
+/* Black Summary Cards */
+.team-summary-cards {
+    display: grid;
+    grid-template-columns: 1.5fr 2fr;
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+    min-height: 180px;
+    /* Changed to min-height for flexibility */
+}
+
+.t-summary-card {
+    background-color: #1a1a1a;
+    border-radius: 16px;
+    padding: 2rem;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+    /* Ensure it fills the grid cell */
+}
+
+.status-cards-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1.5rem;
+    height: 100%;
+    grid-template-rows: 1fr;
+    /* Force the single row to fill the height */
+}
+
+.square-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.t-card-title {
+    font-size: 0.9rem;
+    color: #a1a1aa;
+    margin-bottom: 0.5rem;
+}
+
+.t-card-value {
+    font-size: 2.5rem;
+    font-weight: 600;
+    line-height: 1.1;
+}
+
+.text-white {
+    color: white;
+}
+
+.text-active {
+    color: #ffffff;
+}
+
+.text-closed {
+    color: #ffffff;
+}
+
+.text-lost {
+    color: #ffffff;
+}
+
+.t-card-sub {
+    font-size: 0.85rem;
+    color: #71717a;
+    margin-top: 0.5rem;
+}
+
+/* Score Bar in Black Card */
+.score-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 0.5rem 0;
+}
+
+.score-progress-bar {
+    flex-grow: 1;
+    height: 8px;
+    background-color: #3f3f46;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.score-progress-fill {
+    height: 100%;
+    background-color: #f97316;
+    border-radius: 4px;
+}
+
+/* Team Grid Section */
+.team-members-section {
+    margin-top: 2rem;
+}
+
+.section-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.section-header-row h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--text-main);
+}
+
+.report-status-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.status-current {
+    background-color: #ffedd5;
+    color: #c2410c;
+    border: 1px solid #fed7aa;
+}
+
+.status-completed {
+    background-color: #dcfce7;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+}
+
+/* Team Agent Grid */
+.team-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.team-agent-card {
+    background-color: var(--bg-card);
+    border-radius: 16px;
+    padding: 0;
+    box-shadow: var(--shadow-sm);
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.team-agent-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* New Wrapper for Top Content */
+.tac-top-content {
+    padding: 1.5rem;
+    padding-bottom: 0;
+    flex-grow: 1;
+    /* Pushes footer down if needed */
+}
+
+.tac-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.tac-profile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.tac-profile img {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #f97316;
+}
+
+.tac-name {
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--text-main);
+}
+
+.tac-score {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.tac-progress-row {
+    margin-bottom: 1.5rem;
+}
+
+.tac-bar-bg {
+    height: 6px;
+    /* Slightly thicker */
+    background-color: #e5e7eb;
+    border-radius: 3px;
+    overflow: hidden;
+    width: 100%;
+}
+
+.tac-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+}
+
+/* Card Stats Footer - CLEAN DESIGN */
+.tac-footer {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    background-color: var(--bg-card-footer);
+    padding: 1.25rem 1.5rem;
+    border-top: 1px solid var(--border-footer);
+}
+
+.tac-status-row {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 0px;
+}
+
+.tac-status-row strong {
+    color: var(--text-main);
+    /* Darker label */
+}
+
+.tac-label-row {
+    margin-top: 0.25rem;
+}
+
+.orange-label {
+    color: #ea580c;
+    font-weight: 700;
+    /* Bolder */
+    font-size: 0.7rem;
+    /* Smaller */
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.tac-value-row {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--text-main);
+}
+
+/* Breadcrumb Styles */
+.breadcrumb-link {
+    color: #6b7280;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.breadcrumb-link:hover {
+    color: #374151;
+}
+
+/* Weeks List Items */
+.week-item-row {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-main);
+}
+
+.week-label {
+    color: var(--text-main);
+}
+
+.week-date {
+    color: var(--text-muted);
+}

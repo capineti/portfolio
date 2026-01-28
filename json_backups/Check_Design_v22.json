@@ -1,0 +1,133 @@
+{
+    "name": "Check Design v22 (POLLING FIX)",
+    "nodes": [
+        {
+            "parameters": {
+                "path": "check-design-v22",
+                "responseMode": "responseNode",
+                "options": {
+                    "allowedOrigins": "*"
+                }
+            },
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2.1,
+            "position": [
+                0,
+                0
+            ],
+            "id": "webhook-check-v22",
+            "name": "Webhook v22"
+        },
+        {
+            "parameters": {
+                "operation": "get",
+                "dataTableId": {
+                    "__rl": true,
+                    "value": "DItViTlGReZeI1ks",
+                    "mode": "list",
+                    "cachedResultName": "figma_headless_sessions",
+                    "cachedResultUrl": "/projects/4GLzpDdUGYQOiIUs/datatables/DItViTlGReZeI1ks"
+                },
+                "limit": 1,
+                "options": {
+                    "sort": {
+                        "sortRules": [
+                            {
+                                "column": "id",
+                                "direction": "desc"
+                            }
+                        ]
+                    }
+                }
+            },
+            "type": "n8n-nodes-base.dataTable",
+            "typeVersion": 1,
+            "position": [
+                220,
+                0
+            ],
+            "id": "get-rows-desc",
+            "name": "Get Last Row (DESC)"
+        },
+        {
+            "parameters": {
+                "jsCode": "// Parsear payload + Usar ID como Timestamp infalible\ntry {\n  const item = $input.first().json;\n  const payload = item.payload;\n  // Usamos el ID como 'reloj'. El ID siempre sube (7, 8, 9...).\n  // Es mucho más seguro que procesar fechas.\n  const safeTimestamp = Number(item.id) || Date.now();\n  \n  if (!payload) {\n    return [{ json: { result: { error: 'Empty payload' } } }];\n  }\n\n  const parsedDesign = JSON.parse(payload);\n  \n  const response = {\n    design: parsedDesign,\n    timestamp: safeTimestamp, \n    source: 'n8n-db-id-v22'\n  };\n  \n  return [{ json: { result: response } }];\n\n} catch (error) {\n  return [{ json: {\n    result: {\n      type: 'error',\n      message: 'Processing Error',\n      details: error.message\n    }\n  } }];\n}"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                440,
+                0
+            ],
+            "id": "safe-parse-v22",
+            "name": "Parsear Payload v22"
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={{ $json.result }}",
+                "options": {
+                    "responseHeaders": {
+                        "entries": [
+                            {
+                                "name": "Access-Control-Allow-Origin",
+                                "value": "*"
+                            },
+                            {
+                                "name": "Access-Control-Allow-Methods",
+                                "value": "GET, POST, OPTIONS"
+                            },
+                            {
+                                "name": "Access-Control-Allow-Headers",
+                                "value": "Content-Type"
+                            }
+                        ]
+                    }
+                }
+            },
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1.5,
+            "position": [
+                660,
+                0
+            ],
+            "id": "respond-webhook-v22",
+            "name": "Respond v22"
+        }
+    ],
+    "connections": {
+        "Webhook v22": {
+            "main": [
+                [
+                    {
+                        "node": "Get Last Row (DESC)",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Get Last Row (DESC)": {
+            "main": [
+                [
+                    {
+                        "node": "Parsear Payload v22",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Parsear Payload v22": {
+            "main": [
+                [
+                    {
+                        "node": "Respond v22",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}

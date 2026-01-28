@@ -1,0 +1,647 @@
+{
+    "name": "Auto-Magic v32 (PROMPT FIX)",
+    "nodes": [
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "generar-ui-whatsapp",
+                "responseMode": "responseNode",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2.1,
+            "position": [
+                -480,
+                0
+            ],
+            "id": "webhook-whatsapp-v32",
+            "name": "Webhook WhatsApp",
+            "webhookId": "6215c704-c425-46a9-a8a6-338535560a47"
+        },
+        {
+            "parameters": {
+                "respondWith": "text",
+                "responseBody": "OK",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1.5,
+            "position": [
+                -280,
+                -180
+            ],
+            "id": "respond-wa-v32",
+            "name": "Responder WA Rapido"
+        },
+        {
+            "parameters": {
+                "rules": {
+                    "values": [
+                        {
+                            "conditions": {
+                                "options": {
+                                    "caseSensitive": true,
+                                    "leftValue": "",
+                                    "typeValidation": "strict",
+                                    "version": 2
+                                },
+                                "conditions": [
+                                    {
+                                        "leftValue": "={{ $json.body.data.messageType }}",
+                                        "rightValue": "=^(conversation|extendedTextMessage)$",
+                                        "operator": {
+                                            "type": "string",
+                                            "operation": "equals"
+                                        }
+                                    }
+                                ],
+                                "combinator": "and"
+                            },
+                            "renameOutput": true,
+                            "outputKey": "Texto"
+                        },
+                        {
+                            "conditions": {
+                                "options": {
+                                    "caseSensitive": true,
+                                    "leftValue": "",
+                                    "typeValidation": "strict",
+                                    "version": 2
+                                },
+                                "conditions": [
+                                    {
+                                        "leftValue": "={{ $json.body.data.messageType }}",
+                                        "rightValue": "audioMessage",
+                                        "operator": {
+                                            "type": "string",
+                                            "operation": "equals"
+                                        }
+                                    }
+                                ],
+                                "combinator": "and"
+                            },
+                            "renameOutput": true,
+                            "outputKey": "Audio"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.switch",
+            "typeVersion": 3.2,
+            "position": [
+                -280,
+                0
+            ],
+            "id": "switch-msg-type-v32",
+            "name": "Tipo Mensaje"
+        },
+        {
+            "parameters": {
+                "assignments": {
+                    "assignments": [
+                        {
+                            "name": "prompt",
+                            "value": "={{ $json.body.data.message.conversation || $json.body.data.message.extendedTextMessage.text }}",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "includeOtherFields": true,
+                "options": {}
+            },
+            "type": "n8n-nodes-base.set",
+            "typeVersion": 3.4,
+            "position": [
+                0,
+                -120
+            ],
+            "id": "set-text-prompt-v32",
+            "name": "Set Prompt (Texto)"
+        },
+        {
+            "parameters": {
+                "assignments": {
+                    "assignments": [
+                        {
+                            "name": "Mensaje de Audio",
+                            "value": "={{ $json.body.data.message.base64 }}",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "includeOtherFields": true,
+                "options": {}
+            },
+            "type": "n8n-nodes-base.set",
+            "typeVersion": 3.4,
+            "position": [
+                0,
+                140
+            ],
+            "id": "prep-audio-v32",
+            "name": "Prep Audio"
+        },
+        {
+            "parameters": {
+                "operation": "toBinary",
+                "sourceProperty": "Mensaje de Audio",
+                "options": {
+                    "mimeType": "audio/mp3"
+                }
+            },
+            "type": "n8n-nodes-base.convertToFile",
+            "typeVersion": 1.1,
+            "position": [
+                200,
+                140
+            ],
+            "id": "convert-audio-v32",
+            "name": "Convertir a Archivo"
+        },
+        {
+            "parameters": {
+                "resource": "audio",
+                "operation": "transcribe",
+                "binaryPropertyName": "=data",
+                "options": {}
+            },
+            "type": "@n8n/n8n-nodes-langchain.openAi",
+            "typeVersion": 1.8,
+            "position": [
+                400,
+                140
+            ],
+            "id": "transcribe-whisper-v32",
+            "name": "Whisper Transcribe",
+            "credentials": {
+                "openAiApi": {
+                    "id": "O37TWRmsjgm0WBxD",
+                    "name": "OpenAi account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "assignments": {
+                    "assignments": [
+                        {
+                            "name": "prompt",
+                            "value": "={{ $json.text }}",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "includeOtherFields": true,
+                "options": {}
+            },
+            "type": "n8n-nodes-base.set",
+            "typeVersion": 3.4,
+            "position": [
+                600,
+                140
+            ],
+            "id": "set-voice-prompt-v32",
+            "name": "Set Prompt (Voz)"
+        },
+        {
+            "parameters": {
+                "mode": "load",
+                "pineconeIndex": {
+                    "__rl": true,
+                    "value": "design-system",
+                    "mode": "list"
+                },
+                "prompt": "={{ $json.prompt }}",
+                "topK": 12,
+                "options": {}
+            },
+            "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+            "typeVersion": 1.3,
+            "position": [
+                840,
+                0
+            ],
+            "id": "pinecone-search-v32",
+            "name": "Pinecone Search",
+            "credentials": {
+                "pineconeApi": {
+                    "id": "p2NsNz1SPkez82z5",
+                    "name": "PineconeApi account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "options": {}
+            },
+            "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+            "typeVersion": 1.2,
+            "position": [
+                760,
+                280
+            ],
+            "id": "embeddings-openai-v32",
+            "name": "Embeddings OpenAI",
+            "credentials": {
+                "openAiApi": {
+                    "id": "O37TWRmsjgm0WBxD",
+                    "name": "OpenAi account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "jsCode": "// Preparar contexto + Metadata\nconst pineconeResults = $input.all();\nconst webhookData = $('Webhook WhatsApp').first().json.body;\n\n// 2. Prompt ROBUSTO - Recuperando desde los nodos SET exactos\nlet userPrompt = \"Dashboard\";\ntry {\n  // Intentar obtener desde nodo de texto\n  const tItem = $('Set Prompt (Texto)').first();\n  // Intentar obtener desde nodo de voz\n  const vItem = $('Set Prompt (Voz)').first();\n  \n  if (tItem && tItem.json && tItem.json.prompt) {\n    userPrompt = tItem.json.prompt;\n  } else if (vItem && vItem.json && vItem.json.prompt) {\n    userPrompt = vItem.json.prompt;\n  }\n} catch(e) {\n  console.log(\"Error recuperando prompt:\", e);\n}\n\n// Debug: Forzar visibilidad\nif (!userPrompt || userPrompt === \"Dashboard\") {\n    // Último intento: mirar si viene directo del input de Pinecone (que trae el prompt usado para busqueda)\n   // (Pinecone Search input was the Set Prompt output)\n}\n\nconst whatsappMeta = {\n  instance: webhookData.instance || webhookData.body?.instance,\n  remoteJid: webhookData.data?.key?.remoteJid || webhookData.key?.remoteJid,\n  messageId: webhookData.data?.key?.id || webhookData.key?.id,\n  sender: webhookData.sender || webhookData.data?.participant\n};\n\n// 2. Componentes\nconst componentsByType = {};\npineconeResults.forEach(item => {\n  const doc = item.json.document || item.json;\n  const metadata = doc.metadata || doc || {};\n  const name = metadata.componentName || metadata.name || 'unknown';\n  const key = metadata.componentKey || metadata.key || metadata.figmaId || 'unknown';\n  const desc = metadata.description || doc.pageContent || '';\n  if (key !== 'unknown' && !componentsByType[name]) {\n    componentsByType[name] = { name, key, description: desc.substring(0, 300) };\n  }\n});\nconst availableComponents = Object.values(componentsByType);\nlet componentsDescription = availableComponents.length > 0 \n    ? availableComponents.map(c => `- **${c.name}** (Key: \"${c.key}\")\\n    Desc: ${c.description}`).join('\\n\\n')\n    : \"No se encontraron componentes específicos.\";\n\nreturn [{\n  json: {\n    userPrompt: userPrompt,\n    componentsDescription: componentsDescription,\n    whatsappMeta: whatsappMeta\n  }\n}];"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                1100,
+                0
+            ],
+            "id": "prep-context-v32",
+            "name": "Preparar Contexto"
+        },
+        {
+            "parameters": {
+                "promptType": "define",
+                "text": "==Eres un diseñador de interfaces UI/UX de clase mundial.\\n\\n**TAREA:**\\nDiseñar una interfaz en JSON para Figma basada en: {{ $json.userPrompt }}\\n\\n**COMPONENTES DISPONIBLES (Pinecone):**\\n{{ $json.componentsDescription }}\\n\\n---\\n\\n## 🎨 REGLAS DE CREATIVIDAD (IMPORTANTE)\\n1. **VARIEDAD:** No hagas layouts planos. Si piden un dashboard, incluye Navbar, Header Section con una imagen impactante, y luego una Grid Section.\\n2. **IMÁGENES:** Si el usuario pide imágenes (ej: \"Un paisaje nórdico\"), usa un nodo `type: \"IMAGE\"` con `text: \"Paisaje nórdico\"` y `width: 1440` para hacerlo Hero.\\n3. **TEXTOS REALISTAS:** Nada de \"Lorem Ipsum\". Usa datos reales y evocadores.\\n\\n---\\n\\n## 📐 REGLAS TÉCNICAS (ESTRUCTURA OBLIGATORIA)\\n1. **ROOT:** Todo debe estar dentro de un `Desktop 1440` (aunque tú solo devuelves los hijos en un array `children` o UN objeto raíz llamado `Desktop 1440`). DE PREFERENCIA devuelve un objeto raíz `{ type: \"FRAME\", name: \"App Container\", ... children: [ ... ] }`.\\n2. **NAVBAR:** Siempre que sea una web, incluye un `FRAME` llamado \"Navbar Section\" con `layoutMode: \"HORIZONTAL\"`, `primaryAxisAlignItems: \"SPACE_BETWEEN\"`.\\n3. **GRID:** Si hay una lista de items, mételos en un `FRAME` llamado \"Grid Section\".\\n\\n---\\n\\n## 📝 FORMATO JSON (EJEMPLO IDEAL)\\n\\n```json\\n{\\n  \"type\": \"FRAME\",\\n  \"name\": \"App Container\",\\n  \"layoutMode\": \"VERTICAL\",\\n  \"children\": [\\n    {\\n      \"type\": \"FRAME\",\\n      \"name\": \"Navbar Section\",\\n      \"layoutMode\": \"HORIZONTAL\",\\n      \"height\": 80,\\n      \"children\": [...]\\n    },\\n    {\\n      \"type\": \"IMAGE\",\\n      \"text\": \"Hero Image: Tropical Beach\",\\n      \"width\": 1440,\\n      \"height\": 400\\n    },\\n    {\\n      \"type\": \"FRAME\",\\n      \"name\": \"Grid Section\",\\n      \"layoutMode\": \"VERTICAL\",\\n      \"children\": [...]\\n    }\\n  ]\\n}\\n```\\n\\nResponde SOLO con JSON válido.",
+                "options": {}
+            },
+            "type": "@n8n/n8n-nodes-langchain.agent",
+            "typeVersion": 3,
+            "position": [
+                1340,
+                0
+            ],
+            "id": "gemini-designer-v32",
+            "name": "Gemini: Diseñar UI (QUALITY)"
+        },
+        {
+            "parameters": {
+                "modelName": "models/gemini-1.5-pro-latest",
+                "options": {
+                    "temperature": 0.8
+                }
+            },
+            "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+            "typeVersion": 1,
+            "position": [
+                1340,
+                240
+            ],
+            "id": "gemini-model-v32",
+            "name": "Google Gemini Pro",
+            "credentials": {
+                "googlePalmApi": {
+                    "id": "A4DmOX9XoJsDMGIX",
+                    "name": "Google Gemini(PaLM) Api account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "jsCode": "// 1. Input completo desde Gemini\nconst data = $input.first().json;\n\n// 2. Extraer texto REAL del LLM.\nlet rawText = '';\n\nif (typeof data.output === 'string' && data.output.trim() !== '') {\n  rawText = data.output;\n} else if (Array.isArray(data.payload) && data.payload[0]?.output) {\n  rawText = data.payload[0].output;\n} else {\n  // Fallback seguro\n  rawText = JSON.stringify(data.output || {}); \n}\n\n// 3. Limpiar fences ```json ``` si existen\nrawText = rawText\n  .replace(/```json/gi, '')\n  .replace(/```/g, '')\n  .trim();\n\n// 4. Parsear a JSON\nlet ui;\ntry {\n  // Buscar delimitadores de JSON si hay texto alrededor\n  const firstOpen = rawText.indexOf('{');\n  const lastClose = rawText.lastIndexOf('}');\n  if (firstOpen !== -1 && lastClose !== -1) {\n    rawText = rawText.substring(firstOpen, lastClose + 1);\n  }\n\n  ui = JSON.parse(rawText);\n} catch (e) {\n  throw new Error('LLM output is not valid JSON: ' + e.message);\n}\n\n// 5. Devolver UI LIMPIA (Sin Metadata, igual que el Loose Flow)\nreturn [{ \n  json: ui\n}];\n"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                1660,
+                0
+            ],
+            "id": "validate-json-v32",
+            "name": "Validar JSON (Clean)"
+        },
+        {
+            "parameters": {
+                "jsCode": "// Normalize UI output to match the plugin's expected schema (A-style)\n// COPIADO DE 'HEADLESS GENERATOR - AIRBNB FIXED'\n// EXACT SAME LOGIC AS LOOSE FLOW\n\nfunction isObj(v) {\n  return v && typeof v === 'object' && !Array.isArray(v);\n}\n\nfunction normalizeWidth(node) {\n  if (!node) return;\n  if (typeof node.width === 'number') {\n    // pragmatic rule: if it's essentially \"full width\", convert to \"FILL\"\n    if (node.width >= 1000) node.width = \"FILL\";\n  }\n}\n\nfunction normalizeTextNode(node) {\n  if (node.type !== \"TEXT_NODE\") return;\n\n  // color -> fontColor\n  if (node.color && !node.fontColor) {\n    node.fontColor = node.color;\n    delete node.color;\n  }\n}\n\nfunction normalizeAlign(node) {\n  if (!isObj(node)) return;\n\n  // crossAxisAlignItems -> counterAxisAlignItems\n  if (node.crossAxisAlignItems && !node.counterAxisAlignItems) {\n    node.counterAxisAlignItems = node.crossAxisAlignItems;\n    delete node.crossAxisAlignItems;\n  }\n}\n\nfunction normalizeComponent(node) {\n  if (node.type !== \"COMPONENT\") return;\n\n  // text -> props.text\n  if (typeof node.text === \"string\") {\n    node.props = node.props && isObj(node.props) ? node.props : {};\n    if (node.props.text === undefined) node.props.text = node.text;\n    delete node.text;\n  }\n\n  // If component has children but no props, create safe props\n  if (Array.isArray(node.children)) {\n    node.props = node.props && isObj(node.props) ? node.props : {};\n\n    const texts = [];\n    for (const ch of node.children) {\n      if (ch && ch.type === \"TEXT_NODE\" && typeof ch.text === \"string\") texts.push(ch.text);\n    }\n    if (texts.length && node.props.content === undefined) {\n      node.props.content = texts.join(\" | \");\n    }\n    delete node.children;\n  }\n}\n\nfunction walk(node) {\n  if (Array.isArray(node)) return node.map(walk);\n  if (!isObj(node)) return node;\n\n  normalizeAlign(node);\n  normalizeWidth(node);\n  normalizeTextNode(node);\n  normalizeComponent(node);\n\n  // recurse into children\n  if (Array.isArray(node.children)) {\n    node.children = node.children.map(walk);\n  }\n  return node;\n}\n\n// Input from \"Validar JSON\"\nlet ui = $input.first().json;\n\n// No Metadata handling here because it was stripped in Validar JSON\nui = walk(ui);\n\n// Return pure UI object, exactly like Loose Flow\nreturn [{ json: ui }];"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                1900,
+                0
+            ],
+            "id": "normalize-ui-v32",
+            "name": "Normalize UI to Plugin Schema"
+        },
+        {
+            "parameters": {
+                "dataTableId": {
+                    "__rl": true,
+                    "value": "DItViTlGReZeI1ks",
+                    "mode": "list",
+                    "cachedResultName": "figma_headless_sessions",
+                    "cachedResultUrl": "/projects/4GLzpDdUGYQOiIUs/datatables/DItViTlGReZeI1ks"
+                },
+                "columns": {
+                    "mappingMode": "defineBelow",
+                    "value": {
+                        "payload": "={{ JSON.stringify($json) }}"
+                    },
+                    "matchingColumns": [
+                        "payload"
+                    ],
+                    "schema": [
+                        {
+                            "id": "payload",
+                            "displayName": "payload",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "readOnly": false,
+                            "removed": false
+                        }
+                    ],
+                    "attemptToConvertTypes": false,
+                    "convertFieldsToString": false
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.dataTable",
+            "typeVersion": 1,
+            "position": [
+                2140,
+                0
+            ],
+            "id": "insert-db-classic-v32",
+            "name": "Insertar en DB (CLASSIC)"
+        },
+        {
+            "parameters": {
+                "resource": "chat-api",
+                "operation": "read-messages",
+                "instanceName": "={{ $('Preparar Contexto').first().json.whatsappMeta.instance }}",
+                "remoteJid": "={{ $('Preparar Contexto').first().json.whatsappMeta.remoteJid }}",
+                "messageId": "={{ $('Preparar Contexto').first().json.whatsappMeta.messageId }}"
+            },
+            "type": "n8n-nodes-evolution-api.evolutionApi",
+            "typeVersion": 1,
+            "position": [
+                2400,
+                -100
+            ],
+            "id": "mark-read-v32",
+            "name": "Marcar OK",
+            "credentials": {
+                "evolutionApi": {
+                    "id": "4cfCLQllVGThdDvw",
+                    "name": "Evolution account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "resource": "messages-api",
+                "instanceName": "={{ $('Preparar Contexto').first().json.whatsappMeta.instance }}",
+                "remoteJid": "={{ $('Preparar Contexto').first().json.whatsappMeta.remoteJid }}",
+                "messageText": "✨ *Diseño Completado* (Classic Core)\n\nTu UI ha sido generada y enviada a Figma.",
+                "options_message": {
+                    "delay": 1000
+                }
+            },
+            "type": "n8n-nodes-evolution-api.evolutionApi",
+            "typeVersion": 1,
+            "position": [
+                2640,
+                0
+            ],
+            "id": "send-whatsapp-v32",
+            "name": "Confirmar WhatsApp",
+            "credentials": {
+                "evolutionApi": {
+                    "id": "4cfCLQllVGThdDvw",
+                    "name": "Evolution account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "resource": "integrations-api",
+                "operation": "evolution-bot",
+                "instanceName": "={{ $('Preparar Contexto').first().json.whatsappMeta.instance }}",
+                "resourceForEvolutionBot": "changeStatusEvolutionBot",
+                "evolutionBotId": "={{ $('Preparar Contexto').first().json.whatsappMeta.messageId }}",
+                "remoteJid": "={{ $('Preparar Contexto').first().json.whatsappMeta.remoteJid }}",
+                "status": "closed"
+            },
+            "type": "n8n-nodes-evolution-api.evolutionApi",
+            "typeVersion": 1,
+            "position": [
+                2880,
+                0
+            ],
+            "id": "close-instance-v32",
+            "name": "Cerrar instancia",
+            "credentials": {
+                "evolutionApi": {
+                    "id": "4cfCLQllVGThdDvw",
+                    "name": "Evolution account"
+                }
+            }
+        }
+    ],
+    "connections": {
+        "Webhook WhatsApp": {
+            "main": [
+                [
+                    {
+                        "node": "Tipo Mensaje",
+                        "type": "main",
+                        "index": 0
+                    },
+                    {
+                        "node": "Responder WA Rapido",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Tipo Mensaje": {
+            "main": [
+                [
+                    {
+                        "node": "Set Prompt (Texto)",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Prep Audio",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Set Prompt (Texto)": {
+            "main": [
+                [
+                    {
+                        "node": "Pinecone Search",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Prep Audio": {
+            "main": [
+                [
+                    {
+                        "node": "Convertir a Archivo",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Convertir a Archivo": {
+            "main": [
+                [
+                    {
+                        "node": "Whisper Transcribe",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Whisper Transcribe": {
+            "main": [
+                [
+                    {
+                        "node": "Set Prompt (Voz)",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Set Prompt (Voz)": {
+            "main": [
+                [
+                    {
+                        "node": "Pinecone Search",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Embeddings OpenAI": {
+            "ai_embedding": [
+                [
+                    {
+                        "node": "Pinecone Search",
+                        "type": "ai_embedding",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Pinecone Search": {
+            "main": [
+                [
+                    {
+                        "node": "Preparar Contexto",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Preparar Contexto": {
+            "main": [
+                [
+                    {
+                        "node": "Gemini: Diseñar UI (QUALITY)",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Google Gemini Pro": {
+            "ai_languageModel": [
+                [
+                    {
+                        "node": "Gemini: Diseñar UI (QUALITY)",
+                        "type": "ai_languageModel",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Gemini: Diseñar UI (QUALITY)": {
+            "main": [
+                [
+                    {
+                        "node": "Validar JSON (Clean)",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Validar JSON (Clean)": {
+            "main": [
+                [
+                    {
+                        "node": "Normalize UI to Plugin Schema",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Normalize UI to Plugin Schema": {
+            "main": [
+                [
+                    {
+                        "node": "Insertar en DB (CLASSIC)",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Insertar en DB (CLASSIC)": {
+            "main": [
+                [
+                    {
+                        "node": "Marcar OK",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Marcar OK": {
+            "main": [
+                [
+                    {
+                        "node": "Confirmar WhatsApp",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Confirmar WhatsApp": {
+            "main": [
+                [
+                    {
+                        "node": "Cerrar instancia",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}

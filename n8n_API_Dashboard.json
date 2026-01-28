@@ -1,0 +1,181 @@
+{
+    "name": "API Dashboard (LxArch) - Read Mode",
+    "nodes": [
+        {
+            "parameters": {
+                "path": "dashboard-data",
+                "responseMode": "lastNode",
+                "options": {
+                    "responseHeaders": {
+                        "entries": [
+                            {
+                                "name": "Access-Control-Allow-Origin",
+                                "value": "*"
+                            }
+                        ]
+                    }
+                }
+            },
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 1,
+            "position": [
+                0,
+                0
+            ],
+            "id": "webhook-trigger",
+            "name": "Webhook (GET)"
+        },
+        {
+            "parameters": {
+                "jsCode": "return [ { json: { weekFolderName: 'Semana 03 - 2026' } } ];"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                220,
+                0
+            ],
+            "id": "calc-week",
+            "name": "Calcular Semana"
+        },
+        {
+            "parameters": {
+                "resource": "fileFolder",
+                "searchMethod": "query",
+                "queryString": "=mimeType = 'application/vnd.google-apps.folder' and name = '{{ $json.weekFolderName }}' and trashed = false",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.googleDrive",
+            "typeVersion": 3,
+            "position": [
+                440,
+                0
+            ],
+            "id": "find-week-folder",
+            "name": "Buscar Carpeta Semana",
+            "credentials": {
+                "googleDriveOAuth2Api": {
+                    "id": "c8RhhwWsrFFMDWAC",
+                    "name": "Google Drive account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "resource": "fileFolder",
+                "searchMethod": "query",
+                "queryString": "=name = 'dashboard_export.json' and '{{ $json.id }}' in parents and trashed = false",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.googleDrive",
+            "typeVersion": 3,
+            "position": [
+                660,
+                0
+            ],
+            "id": "find-json-file",
+            "name": "Buscar JSON Datos",
+            "credentials": {
+                "googleDriveOAuth2Api": {
+                    "id": "c8RhhwWsrFFMDWAC",
+                    "name": "Google Drive account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "resource": "file",
+                "operation": "download",
+                "fileId": {
+                    "__rl": true,
+                    "value": "={{ $json.id }}",
+                    "mode": "id"
+                }
+            },
+            "type": "n8n-nodes-base.googleDrive",
+            "typeVersion": 3,
+            "position": [
+                880,
+                0
+            ],
+            "id": "download-json",
+            "name": "Descargar Datos",
+            "credentials": {
+                "googleDriveOAuth2Api": {
+                    "id": "c8RhhwWsrFFMDWAC",
+                    "name": "Google Drive account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "jsCode": "// Convertir el archivo descargado a JSON para enviarlo\nconst binaryData = items[0].binary.data; // 'data' es el nombre por defecto del binario\nif (!binaryData) return [{json: {error: \"No binary data found\"}}];\n\nconst jsonString = Buffer.from(binaryData.data, 'base64').toString('utf8');\nreturn JSON.parse(jsonString);"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                1100,
+                0
+            ],
+            "id": "parse-json",
+            "name": "Parsear JSON"
+        }
+    ],
+    "connections": {
+        "Webhook (GET)": {
+            "main": [
+                [
+                    {
+                        "node": "Calcular Semana",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Calcular Semana": {
+            "main": [
+                [
+                    {
+                        "node": "Buscar Carpeta Semana",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Buscar Carpeta Semana": {
+            "main": [
+                [
+                    {
+                        "node": "Buscar JSON Datos",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Buscar JSON Datos": {
+            "main": [
+                [
+                    {
+                        "node": "Descargar Datos",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Descargar Datos": {
+            "main": [
+                [
+                    {
+                        "node": "Parsear JSON",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}

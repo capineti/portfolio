@@ -1,0 +1,1548 @@
+{
+    "name": "Agente Vigilante (FINAL - SEPARATED & IDEMPOTENT)",
+    "nodes": [
+        {
+            "parameters": {
+                "rule": {
+                    "interval": [
+                        {
+                            "field": "hours"
+                        }
+                    ]
+                }
+            },
+            "type": "n8n-nodes-base.scheduleTrigger",
+            "typeVersion": 1.1,
+            "position": [
+                -401200,
+                -37328
+            ],
+            "id": "99346ba5-d02c-44f4-9a4e-98f4d07c99b9",
+            "name": "Disparador Horario1"
+        },
+        {
+            "parameters": {
+                "operation": "list",
+                "useQueryString": true,
+                "queryString": "={{ \"'1cbRkrTruj6i8rimSkpP7CTi-dj0em_GF' in parents and modifiedTime > '\" + $now.minus({ days: 9 }).toISO() + \"' and trashed = false\" }}",
+                "limit": 100,
+                "options": {
+                    "fields": "*"
+                }
+            },
+            "type": "n8n-nodes-base.googleDrive",
+            "typeVersion": 2,
+            "position": [
+                -400976,
+                -37520
+            ],
+            "id": "01d0ae39-4b83-4b9a-9239-b179cba8ab4c",
+            "name": "Listar Consuelo",
+            "credentials": {
+                "googleDriveOAuth2Api": {
+                    "id": "c8RhhwWsrFFMDWAC",
+                    "name": "Google Drive account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "operation": "list",
+                "useQueryString": true,
+                "queryString": "={{ \"name contains 'Reunión' and modifiedTime > '\" + $now.minus({ days: 7 }).toISO() + \"' and trashed = false and 'lucia@lxarch.com' in owners\" }}",
+                "limit": 100,
+                "options": {
+                    "fields": "*",
+                    "supportsAllDrives": true,
+                    "includeItemsFromAllDrives": true
+                }
+            },
+            "type": "n8n-nodes-base.googleDrive",
+            "typeVersion": 2,
+            "position": [
+                -400976,
+                -37328
+            ],
+            "id": "f4ddac3d-0637-471d-86e7-b989cff2f8e0",
+            "name": "Listar Lucia",
+            "credentials": {
+                "googleDriveOAuth2Api": {
+                    "id": "c8RhhwWsrFFMDWAC",
+                    "name": "Google Drive account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "operation": "list",
+                "useQueryString": true,
+                "queryString": "={{ \"name contains 'Reunión' and modifiedTime > '\" + $now.minus({ days: 7 }).toISO() + \"' and trashed = false and 'cari@lxarch.com' in owners\" }}",
+                "limit": 100,
+                "options": {
+                    "fields": "*",
+                    "supportsAllDrives": true,
+                    "includeItemsFromAllDrives": true
+                }
+            },
+            "type": "n8n-nodes-base.googleDrive",
+            "typeVersion": 2,
+            "position": [
+                -400976,
+                -37120
+            ],
+            "id": "dfae68a6-c4df-4262-aa23-342eefacf13e",
+            "name": "Listar Cari",
+            "credentials": {
+                "googleDriveOAuth2Api": {
+                    "id": "c8RhhwWsrFFMDWAC",
+                    "name": "Google Drive account"
+                }
+            }
+        },
+        {
+            "parameters": {},
+            "type": "n8n-nodes-base.merge",
+            "typeVersion": 2,
+            "position": [
+                -400752,
+                -37424
+            ],
+            "id": "082ee542-aecc-4f8a-8db8-dc74af6fa3da",
+            "name": "Unir Vendedoras 1 y "
+        },
+        {
+            "parameters": {},
+            "type": "n8n-nodes-base.merge",
+            "typeVersion": 2,
+            "position": [
+                -400544,
+                -37296
+            ],
+            "id": "73a4e664-e9c8-4196-9d5a-a153d6c6f078",
+            "name": "Unir Todas1"
+        },
+        {
+            "parameters": {
+                "jsCode": "const items = $input.all();\n// Safety check: Filter out videos and shortcuts, keep only Google Docs, but allow others if needed\nreturn items.filter(item => {\n    const mime = item.json.mimeType || '';\n    if (mime.includes('video') || mime.includes('audio')) return false;\n    if (item.json.name && item.json.name.endsWith('Recording')) return false;\n    return true;\n});"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                -400336,
+                -37296
+            ],
+            "id": "71dcf02a-8292-4f77-ae7a-133dfb892cba",
+            "name": "Filtrar Solo Docs"
+        },
+        {
+            "parameters": {
+                "values": {
+                    "string": [
+                        {
+                            "name": "nombreVendedor",
+                            "value": "={{ (() => { try { const o = JSON.stringify($json.owners || []); if(o.includes('consuelo')) return 'Consuelo Mardones'; if(o.includes('lucia')) return 'Lucia Lebrato'; if(o.includes('cari')) return 'Cari Valdés'; return 'Consuelo Mardones'; } catch(e) { return 'Consuelo Mardones'; } })() }}"
+                        },
+                        {
+                            "name": "fechaReunion",
+                            "value": "={{ $json.name.match(/(\\d{4}[\\/\\-]\\d{2}[\\/\\-]\\d{2})/) ? $json.name.match(/(\\d{4}[\\/\\-]\\d{2}[\\/\\-]\\d{2})/)[1].replace(/\\//g, '-') : ($json.createdTime ? $json.createdTime.split('T')[0] : $now.toFormat('yyyy-MM-dd')) }}"
+                        },
+                        {
+                            "name": "summary",
+                            "value": "={{ $json.name.replace(/\\d{4}[\\/\\-]\\d{2}[\\/\\-]\\d{2}/, '').trim() || 'Reunion' }}"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.set",
+            "typeVersion": 2,
+            "position": [
+                -400208,
+                -37296
+            ],
+            "id": "58b16bba-d107-4594-96ef-e323197c4bb8",
+            "name": "Estampar Datos"
+        },
+        {
+            "parameters": {
+                "options": {}
+            },
+            "type": "n8n-nodes-base.splitInBatches",
+            "typeVersion": 3,
+            "position": [
+                -399952,
+                -37296
+            ],
+            "id": "7b2ddeeb-6068-449c-8d36-13cd9b60dcc5",
+            "name": "Loop Controller"
+        },
+        {
+            "parameters": {
+                "operation": "download",
+                "fileId": {
+                    "__rl": true,
+                    "value": "={{ $json.id }}",
+                    "mode": "id"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.googleDrive",
+            "typeVersion": 3,
+            "position": [
+                -399744,
+                -37296
+            ],
+            "id": "e76aa404-b83d-4424-aec0-179beea89b6b",
+            "name": "Descargar Archivo",
+            "credentials": {
+                "googleDriveOAuth2Api": {
+                    "id": "c8RhhwWsrFFMDWAC",
+                    "name": "Google Drive account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "setAllData": false,
+                "options": {}
+            },
+            "type": "n8n-nodes-base.moveBinaryData",
+            "typeVersion": 1.1,
+            "position": [
+                -399536,
+                -37296
+            ],
+            "id": "375b185f-1d93-48f8-9f6f-f5e606f265f9",
+            "name": "Texto a JSON"
+        },
+        {
+            "parameters": {
+                "jsCode": "const items = $input.all();\nconst item = items[0];\nconst text = item.json.text || \"\";\n\n// IDENTIFICAR VENDEDORA\nlet detectedVendor = item.json.nombreVendedor; \nconst header = text.substring(0, 2000); \n\nconst match = (regex) => regex.test(header);\n\nif (match(/Luc[ií]a[\\s\\u00A0]*Lebrato/i) || match(/lucia@lxarch\\.com/i)) {\n    detectedVendor = \"Lucia Lebrato\";\n} else if (match(/Consuelo[\\s\\u00A0]*Mardones/i) || match(/consuelo@lxarch\\.com/i)) {\n    detectedVendor = \"Consuelo Mardones\";\n} else if (match(/Cari[\\s\\u00A0]*Vald[eé]s/i) || match(/cari@lxarch\\.com/i)) {\n    detectedVendor = \"Cari Valdés\";\n}\n\nitem.json.nombreVendedor = detectedVendor;\nitem.json.transcriptionTextFull = text; \n\nreturn [item];"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                -399344,
+                -37296
+            ],
+            "id": "b425bc4c-039f-4663-86f0-7f32b414d562",
+            "name": "Identificar Vendedora"
+        },
+        {
+            "parameters": {
+                "jsCode": "const items = $input.all();\nconst newItem = items[0].json;\n\n// Calculate Week Folder\nlet dateStr = newItem.fechaReunion || new Date().toISOString().split('T')[0];\nif (dateStr.includes('/')) { dateStr = dateStr.replace(/\\//g, '-'); }\nconst date = new Date(dateStr);\n\nfunction getWeekNumber(d) {\n    const dateObj = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));\n    dateObj.setUTCDate(dateObj.getUTCDate() + 4 - (dateObj.getUTCDay() || 7));\n    const yearStart = new Date(Date.UTC(dateObj.getUTCFullYear(), 0, 1));\n    return Math.ceil((((dateObj - yearStart) / 86400000) + 1) / 7);\n}\n\nconst weekNumber = getWeekNumber(date);\nconst year = date.getFullYear();\nconst weekFolderName = `Semana ${String(weekNumber).padStart(2, '0')} - ${year}`;\n\nnewItem['weekFolderName'] = weekFolderName;\n\nreturn [{json: newItem}];"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                -399136,
+                -37296
+            ],
+            "id": "0800e360-9203-496f-9960-663825c06a5b",
+            "name": "Calcular Semana1"
+        },
+        {
+            "parameters": {
+                "resource": "fileFolder",
+                "queryString": "={{ $json.weekFolderName }}",
+                "returnAll": true,
+                "filter": {
+                    "folderId": {
+                        "__rl": true,
+                        "value": "1aCOa0Pe4DYfZxeQR8MYMzaJS3CWoMwal",
+                        "mode": "list"
+                    },
+                    "whatToSearch": "folders"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.googleDrive",
+            "typeVersion": 3,
+            "position": [
+                -398944,
+                -37296
+            ],
+            "id": "3b76c5e7-ec2f-409f-9474-720354984df4",
+            "name": "Buscar Carpeta Semana1",
+            "alwaysOutputData": true,
+            "credentials": {
+                "googleDriveOAuth2Api": {
+                    "id": "c8RhhwWsrFFMDWAC",
+                    "name": "Google Drive account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "options": {
+                        "caseSensitive": true,
+                        "leftValue": "",
+                        "typeValidation": "strict",
+                        "version": 2
+                    },
+                    "conditions": [
+                        {
+                            "id": "weekcheck",
+                            "leftValue": "={{ $json.id }}",
+                            "rightValue": "",
+                            "operator": {
+                                "type": "string",
+                                "operation": "exists",
+                                "singleValue": true
+                            }
+                        }
+                    ],
+                    "combinator": "and"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 2.2,
+            "position": [
+                -398736,
+                -37296
+            ],
+            "id": "29e68ed5-8e95-4ca2-80b9-40d6078e5b14",
+            "name": "If Semana Existe1"
+        },
+        {
+            "parameters": {
+                "resource": "folder",
+                "name": "={{ $('Calcular Semana1').item.json.weekFolderName }}",
+                "driveId": {
+                    "__rl": true,
+                    "mode": "list",
+                    "value": "My Drive"
+                },
+                "folderId": {
+                    "__rl": true,
+                    "value": "1aCOa0Pe4DYfZxeQR8MYMzaJS3CWoMwal",
+                    "mode": "list"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.googleDrive",
+            "typeVersion": 3,
+            "position": [
+                -398544,
+                -37120
+            ],
+            "id": "1be69aca-d968-4c39-8866-da49366e80e2",
+            "name": "Crear Carpeta Semana",
+            "credentials": {
+                "googleDriveOAuth2Api": {
+                    "id": "c8RhhwWsrFFMDWAC",
+                    "name": "Google Drive account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "jsCode": "return $input.all();"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                -398336,
+                -37312
+            ],
+            "id": "40335608-0115-4871-a743-a373555f70de",
+            "name": "Merge Semana1"
+        },
+        {
+            "parameters": {
+                "resource": "fileFolder",
+                "queryString": "={{ $('Calcular Semana1').item.json.nombreVendedor }}",
+                "returnAll": true,
+                "filter": {
+                    "folderId": {
+                        "__rl": true,
+                        "value": "={{ $json.id }}",
+                        "mode": "id"
+                    },
+                    "whatToSearch": "folders"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.googleDrive",
+            "typeVersion": 3,
+            "position": [
+                -398144,
+                -37312
+            ],
+            "id": "8f4ef6aa-1a49-429d-9223-ca2b0d57a8e8",
+            "name": "Buscar Carpeta Vendedor1",
+            "alwaysOutputData": true,
+            "credentials": {
+                "googleDriveOAuth2Api": {
+                    "id": "c8RhhwWsrFFMDWAC",
+                    "name": "Google Drive account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "options": {
+                        "caseSensitive": true,
+                        "leftValue": "",
+                        "typeValidation": "strict",
+                        "version": 2
+                    },
+                    "conditions": [
+                        {
+                            "id": "vendorcheck",
+                            "leftValue": "={{ $json.id }}",
+                            "rightValue": "",
+                            "operator": {
+                                "type": "string",
+                                "operation": "exists",
+                                "singleValue": true
+                            }
+                        }
+                    ],
+                    "combinator": "and"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 2.2,
+            "position": [
+                -397936,
+                -37312
+            ],
+            "id": "40ed62f3-ff03-436b-9f9f-8f25efa2d399",
+            "name": "If Vendedor Existe1"
+        },
+        {
+            "parameters": {
+                "resource": "folder",
+                "name": "={{ $('Calcular Semana1').item.json.nombreVendedor }}",
+                "driveId": {
+                    "__rl": true,
+                    "mode": "list",
+                    "value": "My Drive"
+                },
+                "folderId": {
+                    "__rl": true,
+                    "value": "={{ $('Merge Semana1').item.json.id }}",
+                    "mode": "id"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.googleDrive",
+            "typeVersion": 3,
+            "position": [
+                -397744,
+                -37120
+            ],
+            "id": "8dc7cff5-930d-40b9-980d-e0c54233b9aa",
+            "name": "Crear Carpeta Vendedor",
+            "credentials": {
+                "googleDriveOAuth2Api": {
+                    "id": "c8RhhwWsrFFMDWAC",
+                    "name": "Google Drive account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "jsCode": "return $input.all();"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                -397536,
+                -37328
+            ],
+            "id": "f2c15251-93b1-4d8c-a6d3-056903ac4789",
+            "name": "Merge Vendedor1"
+        },
+        {
+            "parameters": {
+                "resource": "fileFolder",
+                "queryString": "={{ (() => { let d = $('Calcular Semana1').item.json.fechaReunion; if(d && d.includes('/')) d = d.replace(/\\//g, '-'); return d + ' - ' + $('Calcular Semana1').item.json.summary; })() }}",
+                "returnAll": true,
+                "filter": {
+                    "folderId": {
+                        "__rl": true,
+                        "value": "={{ $json.id }}",
+                        "mode": "id"
+                    },
+                    "whatToSearch": "folders"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.googleDrive",
+            "typeVersion": 3,
+            "position": [
+                -397344,
+                -37328
+            ],
+            "id": "4530e049-60e5-4524-b512-ae4819adad86",
+            "name": "Buscar Carpeta Reunion1",
+            "alwaysOutputData": true,
+            "credentials": {
+                "googleDriveOAuth2Api": {
+                    "id": "c8RhhwWsrFFMDWAC",
+                    "name": "Google Drive account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "options": {
+                        "caseSensitive": true,
+                        "leftValue": "",
+                        "typeValidation": "strict",
+                        "version": 2
+                    },
+                    "conditions": [
+                        {
+                            "id": "meetingcheck",
+                            "leftValue": "={{ $json.id }}",
+                            "rightValue": "",
+                            "operator": {
+                                "type": "string",
+                                "operation": "exists",
+                                "singleValue": true
+                            }
+                        }
+                    ],
+                    "combinator": "and"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 2.2,
+            "position": [
+                -397136,
+                -37328
+            ],
+            "id": "96e0ef25-1978-4c84-b4f5-ea10230c5dad",
+            "name": "If Reunion Existe1"
+        },
+        {
+            "parameters": {
+                "operation": "list",
+                "useQueryString": true,
+                "queryString": "={{ \"'\" + $json.id + \"' in parents and name contains 'ANALISIS_CUALITATIVO' and trashed = false\" }}",
+                "options": {
+                    "fields": "*"
+                }
+            },
+            "type": "n8n-nodes-base.googleDrive",
+            "typeVersion": 2,
+            "position": [
+                -397168,
+                -38368
+            ],
+            "id": "8d5f08a0-1f2f-491c-adee-413c83e537af",
+            "name": "Verificar Reportes",
+            "credentials": {
+                "googleDriveOAuth2Api": {
+                    "id": "c8RhhwWsrFFMDWAC",
+                    "name": "Google Drive account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "options": {
+                        "caseSensitive": true,
+                        "leftValue": "",
+                        "typeValidation": "strict",
+                        "version": 2
+                    },
+                    "conditions": [
+                        {
+                            "id": "reportcheck",
+                            "leftValue": "={{ $json.id }}",
+                            "rightValue": "",
+                            "operator": {
+                                "type": "string",
+                                "operation": "exists",
+                                "singleValue": true
+                            }
+                        }
+                    ],
+                    "combinator": "and"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 2.2,
+            "position": [
+                -394016,
+                -38368
+            ],
+            "id": "fa2113b5-04b6-43ba-bf26-63def6770c57",
+            "name": "If Reporte Ya Existe"
+        },
+        {
+            "parameters": {
+                "jsCode": "return $('Buscar Carpeta Reunion1').all();"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                -393776,
+                -38352
+            ],
+            "id": "8d18c3e4-655f-41d4-a8c4-c6f359088623",
+            "name": "Restore Context"
+        },
+        {
+            "parameters": {
+                "resource": "folder",
+                "name": "={{ (() => { let d = $('Calcular Semana1').item.json.fechaReunion; if(d && d.includes('/')) d = d.replace(/\\//g, '-'); return d + ' - ' + $('Calcular Semana1').item.json.summary; })() }}",
+                "driveId": {
+                    "__rl": true,
+                    "mode": "list",
+                    "value": "My Drive"
+                },
+                "folderId": {
+                    "__rl": true,
+                    "value": "={{ $('Merge Vendedor1').item.json.id }}",
+                    "mode": "id"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.googleDrive",
+            "typeVersion": 3,
+            "position": [
+                -396928,
+                -37312
+            ],
+            "id": "84e2c541-3f53-4189-bd3e-4dac21ab12f1",
+            "name": "Crear Carpeta Reunion",
+            "credentials": {
+                "googleDriveOAuth2Api": {
+                    "id": "c8RhhwWsrFFMDWAC",
+                    "name": "Google Drive account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "jsCode": "return $input.all();"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                -396736,
+                -37312
+            ],
+            "id": "bb40313b-e560-4dc8-ac40-7ade7ec07c93",
+            "name": "Merge Reunion1"
+        },
+        {
+            "parameters": {
+                "operation": "copy",
+                "fileId": {
+                    "__rl": true,
+                    "value": "={{ $('Calcular Semana1').item.json.id }}",
+                    "mode": "id"
+                },
+                "name": "={{ (() => { let d = $('Calcular Semana1').item.json.fechaReunion; if(d && d.includes('/')) d = d.replace(/\\//g, '-'); return d + ' - ' + $('Calcular Semana1').item.json.summary + '.txt'; })() }}",
+                "sameFolder": false,
+                "driveId": {
+                    "__rl": true,
+                    "mode": "list",
+                    "value": "My Drive"
+                },
+                "folderId": {
+                    "__rl": true,
+                    "value": "={{ $json.id }}",
+                    "mode": "id"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.googleDrive",
+            "typeVersion": 3,
+            "position": [
+                -396544,
+                -37312
+            ],
+            "id": "04c2ebb4-2f5b-48c4-9733-151c88bd6605",
+            "name": "Copiar Archivo1",
+            "credentials": {
+                "googleDriveOAuth2Api": {
+                    "id": "c8RhhwWsrFFMDWAC",
+                    "name": "Google Drive account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "operation": "download",
+                "fileId": {
+                    "__rl": true,
+                    "value": "={{ $json.id }}",
+                    "mode": "id"
+                },
+                "options": {
+                    "googleFileConversion": {
+                        "conversion": {
+                            "docsToFormat": "text/plain"
+                        }
+                    }
+                }
+            },
+            "type": "n8n-nodes-base.googleDrive",
+            "typeVersion": 3,
+            "position": [
+                -396352,
+                -37184
+            ],
+            "id": "4d674bfd-7e40-4419-92b7-cddc12dfb069",
+            "name": "Download file",
+            "credentials": {
+                "googleDriveOAuth2Api": {
+                    "id": "c8RhhwWsrFFMDWAC",
+                    "name": "Google Drive account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "operation": "text",
+                "destinationKey": "text",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.extractFromFile",
+            "typeVersion": 1,
+            "position": [
+                -396176,
+                -37184
+            ],
+            "id": "04c0a057-0f65-45dd-9d88-e7b5a5685e20",
+            "name": "Extract from File"
+        },
+        {
+            "parameters": {
+                "resource": "fileFolder",
+                "returnAll": true,
+                "filter": {
+                    "folderId": {
+                        "__rl": true,
+                        "value": "1-9m7SpVY5r_HC9WaSqV5KKBwNPVY3ymK",
+                        "mode": "id"
+                    }
+                },
+                "options": {
+                    "supportsAllDrives": true,
+                    "includeItemsFromAllDrives": true
+                }
+            },
+            "type": "n8n-nodes-base.googleDrive",
+            "typeVersion": 3,
+            "position": [
+                -395968,
+                -37184
+            ],
+            "id": "fb86ee61-4d8d-4655-8314-c828654c544d",
+            "name": "Search files and folders1",
+            "credentials": {
+                "googleDriveOAuth2Api": {
+                    "id": "c8RhhwWsrFFMDWAC",
+                    "name": "Google Drive account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "operation": "download",
+                "fileId": {
+                    "__rl": true,
+                    "value": "={{ $json.id }}",
+                    "mode": "id"
+                },
+                "options": {
+                    "googleFileConversion": {
+                        "conversion": {
+                            "docsToFormat": "text/plain"
+                        }
+                    }
+                }
+            },
+            "type": "n8n-nodes-base.googleDrive",
+            "typeVersion": 3,
+            "position": [
+                -395792,
+                -37184
+            ],
+            "id": "d7cc21da-f63c-4e89-a9d8-00645cf62066",
+            "name": "Download file1",
+            "credentials": {
+                "googleDriveOAuth2Api": {
+                    "id": "c8RhhwWsrFFMDWAC",
+                    "name": "Google Drive account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "operation": "text",
+                "destinationKey": "text",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.extractFromFile",
+            "typeVersion": 1,
+            "position": [
+                -395632,
+                -37184
+            ],
+            "id": "4fcb85b1-2f35-4d03-99b6-3412a92cadc2",
+            "name": "Extract from File1"
+        },
+        {
+            "parameters": {
+                -37184
+            ],
+            "id": "6275a382-8597-4717-a87f-b6c1be74caf0",
+            "name": "Code in JavaScript3"
+        },
+        {
+            "parameters": {
+                "promptType": "define",
+                "text": "=Eres un experto en ventas consultivas B2B... (PROMPT ORIGINAL) ...",
+                "options": {}
+            },
+            "type": "@n8n/n8n-nodes-langchain.agent",
+            "typeVersion": 3,
+            "position": [
+                -395104,
+                -37936
+            ],
+            "id": "8360e961-2fef-4d25-a720-f2ccfc07b376",
+            "name": "Consultor Estratégico"
+        },
+        {
+            "parameters": {
+                "model": {
+                    "__rl": true,
+                    "mode": "list",
+                    "value": "gpt-4o-mini"
+                },
+                "options": {
+                    "temperature": 0
+                }
+            },
+            "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+            "typeVersion": 1.2,
+            "position": [
+                -395008,
+                -37632
+            ],
+            "id": "9305366e-cde4-4ac4-9c76-7709edf19b6a",
+            "name": "OpenAI Chat Model",
+            "credentials": {
+                "openAiApi": {
+                    "id": "O37TWRmsjgm0WBxD",
+                    "name": "OpenAi account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "jsCode": "const items = $input.all();\n// AQUÍ ESTÁ EL CAMBIO: Apuntamos al nuevo nodo 'Code in JavaScript3'\nconst metadata = $('Code in JavaScript3').first().json;\n\nreturn items.map((item) => {\n    let reporte = item.json.output || item.json.text || \"\";\n    return {\n        json: {\n            output: reporte,\n            // Pasamos los metadatos recuperados\n            folderId: metadata.folderId,\n            originalFileId: metadata.originalFileId,\n            nombre_archivo_reporte: metadata.nombre_archivo_reporte\n        }\n    };\n});"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                -394800,
+                -37792
+            ],
+            "id": "e8ecc35b-e4b2-4f69-a218-3d400c67d0c4",
+            "name": "Calculadora mini-programador"
+        },
+        {
+            "parameters": {
+                "operation": "createFromText",
+                "content": "={{ $json.output }}",
+                "name": "={{ $json.nombre_archivo_reporte }}",
+                "driveId": {
+                    "__rl": true,
+                    "value": "My Drive",
+                    "mode": "list"
+                },
+                "folderId": {
+                    "__rl": true,
+                    "value": "={{ $json.folderId }}",
+                    "mode": "id"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.googleDrive",
+            "typeVersion": 3,
+            "position": [
+                -394608,
+                -37792
+            ],
+            "id": "2102a5c2-9317-41ba-80d1-beebaa111a84",
+            "name": "Analisis CUALITATIVO",
+            "credentials": {
+                "googleDriveOAuth2Api": {
+                    "id": "c8RhhwWsrFFMDWAC",
+                    "name": "Google Drive account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "promptType": "define",
+                "text": "=Eres un auditor de calidad robótico y literal... (PROMPT ORIGINAL) ...",
+                "options": {}
+            },
+            "type": "@n8n/n8n-nodes-langchain.agent",
+            "typeVersion": 3,
+            "position": [
+                -395120,
+                -37328
+            ],
+            "id": "862432bb-0212-4312-9414-26debfe3f662",
+            "name": "Auditor de Checklist"
+        },
+        {
+            "parameters": {
+                "model": {
+                    "__rl": true,
+                    "mode": "list",
+                    "value": "gpt-4o-mini"
+                },
+                "options": {
+                    "temperature": 0
+                }
+            },
+            "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+            "typeVersion": 1.2,
+            "position": [
+                -394976,
+                -37040
+            ],
+            "id": "137de529-ff06-47df-83cf-77e95acb133a",
+            "name": "OpenAI Chat Model1",
+            "credentials": {
+                "openAiApi": {
+                    "id": "O37TWRmsjgm0WBxD",
+                    "name": "OpenAi account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "jsCode": "const items = $input.all();\n// AQUÍ ESTÁ EL CAMBIO: Apuntamos al nuevo nodo 'Code in JavaScript3'\nconst metadata = $('Code in JavaScript3').first().json;\n\nreturn items.map((item) => {\n    const ai_output = item.json.output || item.json.text || \"\";\n    \n    // Cambiamos el nombre para que diga CUANTITATIVO\n    let reportName = \"Reporte_Cuantitativo.txt\";\n    if (metadata.nombre_archivo_reporte) {\n        reportName = metadata.nombre_archivo_reporte.replace('CUALITATIVO', 'CUANTITATIVO');\n    }\n\n    return {\n        json: {\n            output: ai_output,\n            folderId: metadata.folderId,\n            originalFileId: metadata.originalFileId,\n            nombre_archivo_reporte: reportName\n        }\n    };\n});"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                -394816,
+                -37328
+            ],
+            "id": "09f8bb9e-1e8a-4e66-bc76-94b0ffa00c5c",
+            "name": "Datos_Checklist"
+        },
+        {
+            "parameters": {
+                "operation": "createFromText",
+                "content": "={{ $json.output }}",
+                "name": "={{ $json.nombre_archivo_reporte }}",
+                "driveId": {
+                    "__rl": true,
+                    "value": "My Drive",
+                    "mode": "list"
+                },
+                "folderId": {
+                    "__rl": true,
+                    "value": "={{ $json.folderId }}",
+                    "mode": "id"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.googleDrive",
+            "typeVersion": 3,
+            "position": [
+                -394608,
+                -37328
+            ],
+            "id": "00105957-28f0-49ab-a620-dcf98babb195",
+            "name": "Analisis CUANTITATIVO",
+            "credentials": {
+                "googleDriveOAuth2Api": {
+                    "id": "c8RhhwWsrFFMDWAC",
+                    "name": "Google Drive account"
+                }
+            }
+        },
+        {
+            "parameters": {},
+            "type": "n8n-nodes-base.merge",
+            "typeVersion": 2,
+            "position": [
+                -394160,
+                -37552
+            ],
+            "id": "537d6976-4a60-4276-b385-b1b03f36c236",
+            "name": "Merge Final"
+        },
+        {
+            "parameters": {
+                "jsCode": "return [{json: {done: true}}];"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                -393936,
+                -37552
+            ],
+            "id": "18b4852b-13e1-471b-b7f9-87ff6c2bc1de",
+            "name": "Loop Back"
+        }
+    ],
+    "pinData": {},
+    "connections": {
+        "Disparador Horario1": {
+            "main": [
+                [
+                    {
+                        "node": "Listar Consuelo",
+                        "type": "main",
+                        "index": 0
+                    },
+                    {
+                        "node": "Listar Lucia",
+                        "type": "main",
+                        "index": 0
+                    },
+                    {
+                        "node": "Listar Cari",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Listar Consuelo": {
+            "main": [
+                [
+                    {
+                        "node": "Unir Vendedoras 1 y ",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Listar Lucia": {
+            "main": [
+                [
+                    {
+                        "node": "Unir Vendedoras 1 y ",
+                        "type": "main",
+                        "index": 1
+                    }
+                ]
+            ]
+        },
+        "Listar Cari": {
+            "main": [
+                [
+                    {
+                        "node": "Unir Todas1",
+                        "type": "main",
+                        "index": 1
+                    }
+                ]
+            ]
+        },
+        "Unir Vendedoras 1 y ": {
+            "main": [
+                [
+                    {
+                        "node": "Unir Todas1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Unir Todas1": {
+            "main": [
+                [
+                    {
+                        "node": "Filtrar Solo Docs",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Filtrar Solo Docs": {
+            "main": [
+                [
+                    {
+                        "node": "Estampar Datos",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Estampar Datos": {
+            "main": [
+                [
+                    {
+                        "node": "Loop Controller",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Loop Controller": {
+            "main": [
+                [],
+                [
+                    {
+                        "node": "Descargar Archivo",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Descargar Archivo": {
+            "main": [
+                [
+                    {
+                        "node": "Texto a JSON",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Texto a JSON": {
+            "main": [
+                [
+                    {
+                        "node": "Identificar Vendedora",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Identificar Vendedora": {
+            "main": [
+                [
+                    {
+                        "node": "Calcular Semana1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Calcular Semana1": {
+            "main": [
+                [
+                    {
+                        "node": "Buscar Carpeta Semana1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Buscar Carpeta Semana1": {
+            "main": [
+                [
+                    {
+                        "node": "If Semana Existe1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "If Semana Existe1": {
+            "main": [
+                [
+                    {
+                        "node": "Merge Semana1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Crear Carpeta Semana",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Crear Carpeta Semana": {
+            "main": [
+                [
+                    {
+                        "node": "Merge Semana1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Merge Semana1": {
+            "main": [
+                [
+                    {
+                        "node": "Buscar Carpeta Vendedor1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Buscar Carpeta Vendedor1": {
+            "main": [
+                [
+                    {
+                        "node": "If Vendedor Existe1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "If Vendedor Existe1": {
+            "main": [
+                [
+                    {
+                        "node": "Merge Vendedor1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Crear Carpeta Vendedor",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Crear Carpeta Vendedor": {
+            "main": [
+                [
+                    {
+                        "node": "Merge Vendedor1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Merge Vendedor1": {
+            "main": [
+                [
+                    {
+                        "node": "Buscar Carpeta Reunion1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Buscar Carpeta Reunion1": {
+            "main": [
+                [
+                    {
+                        "node": "If Reunion Existe1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "If Reunion Existe1": {
+            "main": [
+                [
+                    {
+                        "node": "Verificar Reportes",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Crear Carpeta Reunion",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Verificar Reportes": {
+            "main": [
+                [
+                    {
+                        "node": "If Reporte Ya Existe",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "If Reporte Ya Existe": {
+            "main": [
+                [
+                    {
+                        "node": "Loop Back",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Restore Context",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Crear Carpeta Reunion": {
+            "main": [
+                [
+                    {
+                        "node": "Merge Reunion1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Merge Reunion1": {
+            "main": [
+                [
+                    {
+                        "node": "Copiar Archivo1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Copiar Archivo1": {
+            "main": [
+                [
+                    {
+                        "node": "Download file",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Download file": {
+            "main": [
+                [
+                    {
+                        "node": "Extract from File",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Extract from File": {
+            "main": [
+                [
+                    {
+                        "node": "Search files and folders1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Search files and folders1": {
+            "main": [
+                [
+                    {
+                        "node": "Download file1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Download file1": {
+            "main": [
+                [
+                    {
+                        "node": "Extract from File1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Extract from File1": {
+            "main": [
+                [
+                    {
+                        "node": "Code in JavaScript3",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Code in JavaScript3": {
+            "main": [
+                [
+                    {
+                        "node": "Auditor de Checklist",
+                        "type": "main",
+                        "index": 0
+                    },
+                    {
+                        "node": "Consultor Estratégico",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Consultor Estratégico": {
+            "main": [
+                [
+                    {
+                        "node": "Calculadora mini-programador",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "OpenAI Chat Model": {
+            "ai_languageModel": [
+                [
+                    {
+                        "node": "Consultor Estratégico",
+                        "type": "ai_languageModel",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Calculadora mini-programador": {
+            "main": [
+                [
+                    {
+                        "node": "Analisis CUALITATIVO",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Analisis CUALITATIVO": {
+            "main": [
+                [
+                    {
+                        "node": "Merge Final",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Auditor de Checklist": {
+            "main": [
+                [
+                    {
+                        "node": "Datos_Checklist",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "OpenAI Chat Model1": {
+            "ai_languageModel": [
+                [
+                    {
+                        "node": "Auditor de Checklist",
+                        "type": "ai_languageModel",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Datos_Checklist": {
+            "main": [
+                [
+                    {
+                        "node": "Analisis CUANTITATIVO",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Analisis CUANTITATIVO": {
+            "main": [
+                [
+                    {
+                        "node": "Merge Final",
+                        "type": "main",
+                        "index": 1
+                    }
+                ]
+            ]
+        },
+        "Merge Final": {
+            "main": [
+                [
+                    {
+                        "node": "Loop Back",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Loop Back": {
+            "main": [
+                [
+                    {
+                        "node": "Loop Controller",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "active": false,
+    "settings": {
+        "executionOrder": "v1"
+    },
+    "versionId": "f2524abb-a8a6-4d15-9ac5-5650b949e289",
+    "meta": {
+        "templateCredsSetupCompleted": true,
+        "instanceId": "3efa0810f678680b3ab9873a809d017fbd7c8833aae452b14a057994d649074b"
+    },
+    "id": "HV9lMHlUT9bP18yb",
+    "tags": []
+}

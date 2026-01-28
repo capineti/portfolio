@@ -1,0 +1,277 @@
+{
+    "name": "Gemini-Swarm UI Generator (Orchestra)",
+    "nodes": [
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "swarm-ui-gen",
+                "responseMode": "responseNode",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2,
+            "position": [
+                0,
+                0
+            ],
+            "id": "webhook-trigger",
+            "name": "Webhook Trigger"
+        },
+        {
+            "parameters": {
+                "modelName": "models/gemini-1.5-pro-latest",
+                "options": {
+                    "temperature": 0.7,
+                    "systemInstruction": "Eres 'El Arquitecto'. Tu único trabajo es crear la ESTRUCTURA visual del diseño. \n\nREGLAS:\n1. Usa SOLO nodos FRAME, TEXT_NODE e IMAGE.\n2. NO escribas textos finales. Usa placeholders como '{{TITLE}}', '{{PRICE}}', '{{DATE}}'.\n3. NO definas colores exactos, usa 'GREY_200' o 'PRIMARY'.\n4. Céntrate en Auto-Layout, Padding y Alignment.\n5. Output: SOLO JSON válido."
+                }
+            },
+            "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+            "typeVersion": 1,
+            "position": [
+                280,
+                220
+            ],
+            "id": "model-architect",
+            "name": "Gemini Architect",
+            "credentials": {
+                "googlePalmApi": {
+                    "id": "google-gemini-creds",
+                    "name": "Google Gemini Api"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "promptType": "define",
+                "text": "={{ $json.body.prompt }}",
+                "hasOutputParser": true,
+                "options": {}
+            },
+            "type": "@n8n/n8n-nodes-langchain.chainLlm",
+            "typeVersion": 1,
+            "position": [
+                480,
+                0
+            ],
+            "id": "agent-architect",
+            "name": "1. The Architect (Layout)",
+            "inputs": [
+                "main",
+                "model"
+            ],
+            "outputs": [
+                "main"
+            ]
+        },
+        {
+            "parameters": {
+                "modelName": "models/gemini-1.5-flash-latest",
+                "options": {
+                    "temperature": 0.9,
+                    "systemInstruction": "Eres 'El Copywriter'. Tu trabajo es llenar de vida el diseño.\n\nTAREA:\n1. Recibes un JSON con placeholders.\n2. Reemplaza '{{TITLE}}' con títulos creativos reales (Ej: 'Escapada a Bali').\n3. Reemplaza '{{PRICE}}' con precios realistas.\n4. Inventa nombres, fechas y descripciones.\n5. NO cambies la estructura, solo el contenido 'text' y 'props'."
+                }
+            },
+            "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+            "typeVersion": 1,
+            "position": [
+                780,
+                220
+            ],
+            "id": "model-copywriter",
+            "name": "Gemini Copywriter",
+            "credentials": {
+                "googlePalmApi": {
+                    "id": "google-gemini-creds",
+                    "name": "Google Gemini Api"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "promptType": "define",
+                "text": "={{ $json.output }}",
+                "hasOutputParser": true,
+                "options": {}
+            },
+            "type": "@n8n/n8n-nodes-langchain.chainLlm",
+            "typeVersion": 1,
+            "position": [
+                980,
+                0
+            ],
+            "id": "agent-copywriter",
+            "name": "2. The Copywriter (Content)",
+            "inputs": [
+                "main",
+                "model"
+            ],
+            "outputs": [
+                "main"
+            ]
+        },
+        {
+            "parameters": {
+                "modelName": "models/gemini-1.5-pro-latest",
+                "options": {
+                    "temperature": 0.1,
+                    "systemInstruction": "Eres 'El Ingeniero de Sistemas'. Tu trabajo es conectar el diseño con el Design System.\n\nTAREA:\n1. Analiza los números fijos (spacing, padding).\n2. Si ves '24' o '32', cámbialo por variables como 'spacing/lg' o 'spacing/xl'.\n3. Si ves colores genéricos ('PRIMARY'), cámbialos por variables 'color/primary'.\n4. Output: El mismo JSON pero con propiedades 'itemSpacingVar', 'padding: { allVar: ... }' inyectadas."
+                }
+            },
+            "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+            "typeVersion": 1,
+            "position": [
+                1280,
+                220
+            ],
+            "id": "model-engineer",
+            "name": "Gemini Engineer",
+            "credentials": {
+                "googlePalmApi": {
+                    "id": "google-gemini-creds",
+                    "name": "Google Gemini Api"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "promptType": "define",
+                "text": "={{ $json.output }}",
+                "hasOutputParser": true,
+                "options": {}
+            },
+            "type": "@n8n/n8n-nodes-langchain.chainLlm",
+            "typeVersion": 1,
+            "position": [
+                1480,
+                0
+            ],
+            "id": "agent-engineer",
+            "name": "3. The Engineer (Variables)",
+            "inputs": [
+                "main",
+                "model"
+            ],
+            "outputs": [
+                "main"
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "// Limpieza final para el Plugin\nlet raw = $json.output;\n// Quitar markdown si queda\nraw = raw.replace(/```json/g, '').replace(/```/g, '').trim();\nreturn { json: JSON.parse(raw) };"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                1800,
+                0
+            ],
+            "id": "final-polish",
+            "name": "Final Polish"
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={{ $json }}",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1,
+            "position": [
+                2000,
+                0
+            ],
+            "id": "response",
+            "name": "Deliver Outcome"
+        }
+    ],
+    "connections": {
+        "Webhook Trigger": {
+            "main": [
+                [
+                    {
+                        "node": "1. The Architect (Layout)",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Gemini Architect": {
+            "ai_languageModel": [
+                [
+                    {
+                        "node": "1. The Architect (Layout)",
+                        "type": "ai_languageModel",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "1. The Architect (Layout)": {
+            "main": [
+                [
+                    {
+                        "node": "2. The Copywriter (Content)",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Gemini Copywriter": {
+            "ai_languageModel": [
+                [
+                    {
+                        "node": "2. The Copywriter (Content)",
+                        "type": "ai_languageModel",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "2. The Copywriter (Content)": {
+            "main": [
+                [
+                    {
+                        "node": "3. The Engineer (Variables)",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Gemini Engineer": {
+            "ai_languageModel": [
+                [
+                    {
+                        "node": "3. The Engineer (Variables)",
+                        "type": "ai_languageModel",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "3. The Engineer (Variables)": {
+            "main": [
+                [
+                    {
+                        "node": "Final Polish",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Final Polish": {
+            "main": [
+                [
+                    {
+                        "node": "Deliver Outcome",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}

@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Floxfy / LxArch Case Study | Sergio Cabrera</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --bg: #f8fafc;
+            --text-main: #0f172a;
+            --text-light: #64748b;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text-main);
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            padding: 40px 0;
+            border-bottom: 1px solid #e2e8f0;
+            margin-bottom: 60px;
+        }
+
+        .back-link {
+            text-decoration: none;
+            color: var(--text-light);
+            font-weight: 500;
+        }
+
+        h1 {
+            font-size: 42px;
+            margin-bottom: 16px;
+            letter-spacing: -1px;
+        }
+
+        .subtitle {
+            font-size: 20px;
+            color: var(--text-light);
+            margin-bottom: 40px;
+        }
+
+        .hero-img {
+            width: 100%;
+            border-radius: 12px;
+            margin-bottom: 60px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-title {
+            font-size: 24px;
+            margin-top: 60px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--primary);
+            padding-left: 16px;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin: 40px 0;
+        }
+
+        .stat-box {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+        }
+
+        .stat-num {
+            display: block;
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--text-light);
+            text-transform: uppercase;
+        }
+
+        .quote {
+            font-style: italic;
+            border-left: 2px solid #cbd5e1;
+            padding-left: 20px;
+            color: var(--text-light);
+            margin: 40px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <a href="portfolio.html" class="back-link">← Volver al Portfolio</a>
+        </header>
+
+        <span
+            style="text-transform: uppercase; color: var(--primary); font-weight: 700; font-size: 12px; letter-spacing: 1px;">Conversational
+            AI Architecture</span>
+        <h1>Orquestando la Inteligencia de Ventas</h1>
+        <p class="subtitle">Diseño de un ecosistema multi-agente para transformar grabaciones de ventas en métricas de
+            rendimiento accionables.</p>
+
+        <img src="lxarch_n8n_workflow.png" alt="Workflow Complex Diagram" class="hero-img">
+
+        <style>
+            .stat-grid {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 24px;
+                margin: 60px 0;
+            }
+
+            @media(max-width: 900px) {
+                .stat-grid {
+                    grid-template-columns: 1fr 1fr;
+                    gap: 16px;
+                }
+            }
+
+            .stat-box {
+                background: white;
+                padding: 32px 20px;
+                border-radius: 16px;
+                text-align: center;
+                border: 1px solid rgba(0, 0, 0, 0.06);
+                box-shadow: 0 4px 6px -2px rgba(0, 0, 0, 0.03);
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                height: 100%;
+                transition: transform 0.2s ease, box-shadow 0.2s ease;
+            }
+
+            .stat-box:hover {
+                transform: translateY(-4px);
+                box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1);
+                border-color: rgba(37, 99, 235, 0.2);
+            }
+
+            .stat-num {
+                display: block;
+                font-size: 32px;
+                font-weight: 800;
+                color: #1e293b;
+                margin-bottom: 8px;
+                letter-spacing: -0.5px;
+            }
+
+            .stat-label {
+                font-size: 11px;
+                color: #64748b;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                line-height: 1.4;
+                font-weight: 600;
+            }
+        </style>
+
+        <div class="stat-grid">
+            <div class="stat-box">
+                <span class="stat-num">800 Calls</span>
+                <span class="stat-label">Auditadas en 4 meses</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-num">3 Agentes</span>
+                <span class="stat-label">Cualitativo, Cuantitativo, Auditor</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-num">n8n</span>
+                <span class="stat-label">Motor de Orquestación</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-num">Antigravity</span>
+                <span class="stat-label">Conexión Frontend</span>
+            </div>
+        </div>
+
+        <h2 class="section-title">El Desafío: Datos Invisibles</h2>
+        <p>Los equipos de ventas generaban gigabytes de grabaciones de llamadas, pero "nadie tiene tiempo de escuchar 1
+            hora de audio para dar 5 minutos de feedback". La información valiosa (objeciones de clientes, tonos de voz,
+            oportunidades perdidas) se perdía en el vacío.</p>
+
+        <h2 class="section-title">Estrategia: Arquitectura Multi-Agente Especializada</h2>
+        <p>Para evitar alucinaciones y análisis superficiales, diseñé un sistema donde ningún agente "lo hace todo".
+            Cada LLM tiene un rol estrecho y definido:</p>
+
+        <div
+            style="background: white; padding: 24px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 30px;">
+            <h3 style="margin-top: 0; font-size: 18px;">1. Análisis Granular (Per-Call Analysis)</h3>
+            <ul style="padding-left: 20px; color: #475569;">
+                <li style="margin-bottom: 12px;"><strong>Agente Cuantitativo (The Auditor):</strong> Extrae KPIs duros,
+                    métricas de silencio vs. habla e interrupciones utilizando lógica determinista.</li>
+                <li style="margin-bottom: 12px;"><strong>Agente Cualitativo (The Coach):</strong> Utiliza modelos de
+                    mayor razonamiento (Claude 3.5 Sonnet) para evaluar empatía, tono y manejo de objeciones.</li>
+            </ul>
+        </div>
+
+        <div
+            style="background: white; padding: 24px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 30px;">
+            <h3 style="margin-top: 0; font-size: 18px;">2. Consolidación Ejecutiva (Weekly Executive)</h3>
+            <p>Un tercer agente se activa al final de la semana. Recopila todos los JSONs individuales de la semana y
+                genera un informe de tendencias macro para la dirección, sin necesidad de leer miles de líneas de
+                transcripción.</p>
+        </div>
+
+        <h2 class="section-title">Data Governance & Estructura de Archivos</h2>
+        <p>El sistema no es una "caja negra". Diseñé una arquitectura de almacenamiento estructurada para garantizar
+            auditoría y trazabilidad:</p>
+
+        <div
+            style="font-family: monospace; background: #1e293b; color: #94a3b8; padding: 20px; border-radius: 8px; font-size: 13px; line-height: 1.8; margin-bottom: 40px; overflow-x: auto;">
+            📂 /Informes_Semanales_2025<br>
+            &nbsp; └─ 📁 /Semana_42<br>
+            &nbsp; &nbsp; &nbsp; └─ 📁 /Vendedor_Juan_Perez<br>
+            &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ├─ 📄 Informe_Ejecutivo_Semanal.pdf<br>
+            &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; └─ 📁 /Llamadas_Procesadas<br>
+            &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; └─ 📁 /ID_Call_1024<br>
+            &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ├─ 📄 audio_original.mp3<br>
+            &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ├─ 📄 transcripcion_whisper.txt<br>
+            &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; └─ 📄 analisis_metrics.json<br>
+        </div>
+
+        <div class="quote">
+            "La inteligencia artificial no sirve de nada si los datos que genera no son accesibles, auditables y
+            estructurados."
+        </div>
+
+        <h2 class="section-title">La Capa Visual: Antigravity Framework</h2>
+        <p>Toda esta complejidad backend sería inútil sin una interfaz capaz de seguir el ritmo. Implementé
+            <strong>Antigravity</strong> como la capa de frontend reactiva.
+        </p>
+        <p>Antigravity conecta los websockets de n8n directamente con la UI, permitiendo que el Dashboard se actualice
+            en tiempo real a medida que los agentes procesan las llamadas, eliminando la necesidad de recargar la página
+            y dando una sensación de "magia" instantánea al manager.</p>
+
+        <h2 class="section-title">Impacto en UX</h2>
+        <p>El dashboard final no muestra chat logs interminables. Muestra <strong>Patrones de Comportamiento</strong>.
+            Diseñé visualizaciones de datos que permiten a un manager ver en 5 segundos si su equipo está cumplimiento
+            el script de ventas o si necesitan formación en cierre.</p>
+    </div>
+</body>
+
+</html>

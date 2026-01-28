@@ -1,0 +1,124 @@
+{
+    "name": "Check Design v23 (JS SORT HACK)",
+    "nodes": [
+        {
+            "parameters": {
+                "path": "check-design-v22",
+                "responseMode": "responseNode",
+                "options": {
+                    "allowedOrigins": "*"
+                }
+            },
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2.1,
+            "position": [
+                0,
+                0
+            ],
+            "id": "webhook-check-v23",
+            "name": "Webhook v22 (Same URL)"
+        },
+        {
+            "parameters": {
+                "operation": "get",
+                "dataTableId": {
+                    "__rl": true,
+                    "value": "DItViTlGReZeI1ks",
+                    "mode": "list",
+                    "cachedResultName": "figma_headless_sessions",
+                    "cachedResultUrl": "/projects/4GLzpDdUGYQOiIUs/datatables/DItViTlGReZeI1ks"
+                },
+                "limit": 50,
+                "options": {}
+            },
+            "type": "n8n-nodes-base.dataTable",
+            "typeVersion": 1,
+            "position": [
+                220,
+                0
+            ],
+            "id": "get-many-rows",
+            "name": "Get Many Rows (No Sort)"
+        },
+        {
+            "parameters": {
+                "jsCode": "// ORDENACIÓN MANUAL POR FUERZA BRUTA\n// Si la base de datos se niega a ordenar, lo hacemos nosotros.\n\nlet allItems = $input.all();\n\nif (allItems.length === 0) {\n  return [{ json: { result: { error: 'No rows found' } } }];\n}\n\n// Ordenar por ID descendente (El mayor ID primero)\n// Asumimos que ID es numérico o string numérico\nallItems.sort((a, b) => {\n  const idA = Number(a.json.id) || 0;\n  const idB = Number(b.json.id) || 0;\n  return idB - idA;\n});\n\n// Cogemos el GANADOR (El ID más alto)\nconst winner = allItems[0].json;\n\n// Preparamos respuesta\nconst payload = winner.payload;\nconst safeTimestamp = Number(winner.id) || Date.now();\n\ntry {\n  const parsedDesign = JSON.parse(payload);\n  return [{ \n    json: { \n      result: { \n        design: parsedDesign, \n        timestamp: safeTimestamp, \n        source: 'manual-js-sort-v23',\n        debugID: winner.id // Para ver en logs que es el correcto\n      } \n    } \n  }];\n} catch (e) {\n  return [{ json: { result: { error: 'Parse Error', details: e.message } } }];\n}"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                440,
+                0
+            ],
+            "id": "manual-sort-code",
+            "name": "Manual JS Sort (The Boss)"
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={{ $json.result }}",
+                "options": {
+                    "responseHeaders": {
+                        "entries": [
+                            {
+                                "name": "Access-Control-Allow-Origin",
+                                "value": "*"
+                            },
+                            {
+                                "name": "Access-Control-Allow-Methods",
+                                "value": "GET, POST, OPTIONS"
+                            },
+                            {
+                                "name": "Access-Control-Allow-Headers",
+                                "value": "Content-Type"
+                            }
+                        ]
+                    }
+                }
+            },
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1.5,
+            "position": [
+                660,
+                0
+            ],
+            "id": "respond-webhook-v23",
+            "name": "Respond v23"
+        }
+    ],
+    "connections": {
+        "Webhook v22 (Same URL)": {
+            "main": [
+                [
+                    {
+                        "node": "Get Many Rows (No Sort)",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Get Many Rows (No Sort)": {
+            "main": [
+                [
+                    {
+                        "node": "Manual JS Sort (The Boss)",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Manual JS Sort (The Boss)": {
+            "main": [
+                [
+                    {
+                        "node": "Respond v23",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}

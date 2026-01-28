@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      padding: 0;
+      margin: 0;
+      background: #FAFAFA;
+      color: #333;
+    }
+
+    /* TABS */
+    .tabs {
+      display: flex;
+      background: #FFF;
+      border-bottom: 1px solid #E0E0E0;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 16px;
+      text-align: center;
+      font-weight: 600;
+      font-size: 12px;
+      cursor: pointer;
+      color: #999;
+      transition: all 0.2s;
+    }
+
+    .tab.active {
+      color: #18A0FB;
+      border-bottom: 2px solid #18A0FB;
+    }
+
+    .content {
+      padding: 20px;
+      display: none;
+    }
+
+    .content.active {
+      display: block;
+    }
+
+    /* FORM ELEMENTS */
+    h3 {
+      margin: 0 0 12px 0;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    p {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+
+    textarea {
+      width: 100%;
+      height: 100px;
+      padding: 12px;
+      border: 1px solid #E0E0E0;
+      border-radius: 6px;
+      margin-bottom: 12px;
+      font-family: inherit;
+      font-size: 13px;
+      resize: vertical;
+      box-sizing: border-box;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: #18A0FB;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #18A0FB;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 13px;
+      transition: background 0.2s;
+    }
+
+    button:hover {
+      background: #0D8DE3;
+    }
+
+    button:disabled {
+      background: #CCC;
+      cursor: not-allowed;
+    }
+
+    button.secondary {
+      background: #F0F0F0;
+      color: #333;
+    }
+
+    button.secondary:hover {
+      background: #E0E0E0;
+    }
+
+    .status {
+      margin-top: 12px;
+      font-size: 11px;
+      color: #666;
+      text-align: center;
+      min-height: 16px;
+    }
+
+    .examples {
+      margin-top: 20px;
+      border-top: 1px solid #EEE;
+      padding-top: 15px;
+    }
+
+    .examples-title {
+      font-size: 10px;
+      font-weight: 700;
+      color: #AAA;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .example {
+      font-size: 12px;
+      color: #555;
+      padding: 4px 0;
+      cursor: pointer;
+    }
+
+    .example:hover {
+      color: #18A0FB;
+    }
+
+    /* INGESTION STYLES */
+    .selection-info {
+      background: #FFF;
+      border: 1px solid #E0E0E0;
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 16px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: #E8F5FF;
+      color: #18A0FB;
+      font-size: 10px;
+      font-weight: 600;
+      margin-right: 4px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('gen')">✨ Generate UI</div>
+    <div class="tab" onclick="switchTab('ingest')">📦 Upload to DB</div>
+  </div>
+
+  <!-- VIEW: GENERATOR -->
+  <div id="view-gen" class="content active">
+    <h3>Design Prompt</h3>
+    <textarea id="prompt" placeholder="Describe your UI (e.g., Airbnb dashboard...)"></textarea>
+    <button id="btn-gen">Generate Layout</button>
+    <div id="status-gen" class="status">Ready</div>
+
+    <div class="examples">
+      <div class="examples-title">Try These</div>
+      <div class="example" data-prompt="Dashboard with sidebar and data table">📊 SaaS Dashboard</div>
+      <div class="example" data-prompt="Landing page with hero, features and pricing">🚀 Landing Page</div>
+      <div class="example" data-prompt="Mobile login screen with social auth">🔐 Login Screen</div>
+    </div>
+  </div>
+
+  <!-- VIEW: INGESTION -->
+  <div id="view-ingest" class="content">
+    <h3>Sync Components</h3>
+    <p>Select components in Figma to upload them to your <strong>n8n + Pinecone</strong> knowledge base.</p>
+
+    <button id="btn-sync" class="secondary">⬆️ Upload Selected</button>
+    <div id="status-sync" class="status">Current selection: Unknown</div>
+  </div>
+
+  <script>
+    // CONFIG
+    const URL_GEN = "https://n8n-pruebas-u55942.vm.elestio.app/webhook/swarm-ui-gen";
+    const URL_INGEST = "https://n8n-pruebas-u55942.vm.elestio.app/webhook/generar-ui"; // URL Flujo 1
+    const URL_POLLING = "https://n8n-pruebas-u55942.vm.elestio.app/webhook/check-design-v22";
+
+    // ELEMENTS
+    const btnGen = document.getElementById('btn-gen');
+    const btnSync = document.getElementById('btn-sync');
+    const promptInput = document.getElementById('prompt');
+    const statusGen = document.getElementById('status-gen');
+    const statusSync = document.getElementById('status-sync');
+
+    // --- TABS LOGIC ---
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
+
+      if (tabName === 'gen') {
+        document.querySelectorAll('.tab')[0].classList.add('active');
+        document.getElementById('view-gen').classList.add('active');
+      } else {
+        document.querySelectorAll('.tab')[1].classList.add('active');
+        document.getElementById('view-ingest').classList.add('active');
+      }
+    }
+
+    // --- GENERATION LOGIC ---
+    btnGen.onclick = async () => {
+      const prompt = promptInput.value.trim();
+      if (!prompt) return;
+
+      btnGen.disabled = true;
+      btnGen.textContent = "Designing...";
+      statusGen.textContent = "🤖 Asking AI...";
+
+      try {
+        const res = await fetch(URL_GEN, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt })
+        });
+        const data = await res.json();
+
+        parent.postMessage({ pluginMessage: { type: 'draw-layout', data: data } }, '*');
+        statusGen.textContent = "✨ Drawing...";
+      } catch (e) {
+        statusGen.textContent = "❌ Error: " + e.message;
+      } finally {
+        btnGen.disabled = false;
+        btnGen.textContent = "Generate Layout";
+      }
+    };
+
+    // --- INGESTION LOGIC ---
+    btnSync.onclick = () => {
+      // 1. Ask Figma for selection data
+      statusSync.textContent = "Reading selection...";
+      parent.postMessage({ pluginMessage: { type: 'get-selection' } }, '*');
+    };
+
+    // Receive message from code.js
+    window.onmessage = async (event) => {
+      const msg = event.data.pluginMessage;
+
+      if (msg.type === 'selection-response') {
+        if (!msg.success) {
+          statusSync.textContent = "⚠️ Please select a component";
+          return;
+        }
+
+        const components = msg.data;
+        statusSync.textContent = `📤 Uploading ${components.length} components...`;
+
+        try {
+          // 2. Send to n8n Ingestion Workflow
+          const res = await fetch(URL_INGEST, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              components: components,
+              source: "figma_plugin_v2"
+            })
+          });
+
+          if (res.ok) {
+            statusSync.textContent = "✅ Uploaded successfully to Pinecone!";
+            setTimeout(() => statusSync.textContent = "Ready", 3000);
+          } else {
+            throw new Error("Server rejected payload");
+          }
+        } catch (e) {
+          statusSync.textContent = "❌ Upload failed: " + e.message;
+        }
+      }
+
+      if (msg.type === 'draw-layout') {
+        statusGen.textContent = "Done!";
+      }
+    };
+
+    // --- EXAMPLES AUTO-FILL ---
+    document.querySelectorAll('.example').forEach(ex => {
+      ex.onclick = () => {
+        promptInput.value = ex.dataset.prompt;
+        promptInput.focus();
+      };
+    });
+
+    // --- POLLING (Background) ---
+    // (Keep your existing polling logic here if needed)
+    let lastTime = 0;
+    setInterval(async () => {
+      try {
+        const res = await fetch(URL_POLLING + '?t=' + Date.now());
+        if (res.ok) {
+          const data = await res.json();
+          const payload = data.result || data;
+          if (payload.timestamp && Number(payload.timestamp) > lastTime) {
+            lastTime = Number(payload.timestamp);
+            if (payload.design) {
+              parent.postMessage({ pluginMessage: { type: 'draw-layout', data: payload.design } }, '*');
+              statusGen.textContent = "✨ Auto-detected external design!";
+            }
+          }
+        }
+      } catch (e) { }
+    }, 2000);
+
+  </script>
+</body>
+
+</html>

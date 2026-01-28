@@ -1,0 +1,466 @@
+{
+    "name": "Hierarchical UI Swarm (SAFE IMPORT v3)",
+    "nodes": [
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "swarm-ui-gen-safe",
+                "responseMode": "responseNode",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 1,
+            "position": [
+                0,
+                0
+            ],
+            "id": "webhook-safe",
+            "name": "Webhook Trigger"
+        },
+        {
+            "parameters": {
+                "options": {}
+            },
+            "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+            "typeVersion": 1,
+            "position": [
+                220,
+                220
+            ],
+            "id": "director-model",
+            "name": "Director Model"
+        },
+        {
+            "parameters": {
+                "promptType": "define",
+                "text": "={{ $json.body.prompt }}",
+                "hasOutputParser": true
+            },
+            "type": "@n8n/n8n-nodes-langchain.chainLlm",
+            "typeVersion": 1,
+            "position": [
+                220,
+                0
+            ],
+            "id": "director-agent",
+            "name": "THE DIRECTOR",
+            "inputs": [
+                "main",
+                "model"
+            ],
+            "outputs": [
+                "main"
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "try {\n  const raw = $json.output.replace(/```json/g, '').replace(/```/g, '').trim();\n  const plan = JSON.parse(raw);\n  return plan.map(task => ({ json: task }));\n} catch (e) {\n  return [{ json: { type: 'hero', instruction: 'Error parsing plan.' } }];\n}"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                540,
+                0
+            ],
+            "id": "plan-parser",
+            "name": "Parse Plan"
+        },
+        {
+            "parameters": {
+                "dataType": "string",
+                "value1": "={{ $json.type }}",
+                "rules": {
+                    "rules": [
+                        {
+                            "value2": "navbar"
+                        },
+                        {
+                            "value2": "grid"
+                        },
+                        {
+                            "value2": "hero"
+                        }
+                    ]
+                },
+                "fallbackOutput": 3
+            },
+            "type": "n8n-nodes-base.switch",
+            "typeVersion": 1,
+            "position": [
+                780,
+                0
+            ],
+            "id": "router",
+            "name": "Router"
+        },
+        {
+            "parameters": {
+                "options": {}
+            },
+            "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+            "typeVersion": 1,
+            "position": [
+                1080,
+                -220
+            ],
+            "id": "navbar-model",
+            "name": "Navbar Model"
+        },
+        {
+            "parameters": {
+                "promptType": "define",
+                "text": "={{ $json.instruction }}",
+                "hasOutputParser": true
+            },
+            "type": "@n8n/n8n-nodes-langchain.chainLlm",
+            "typeVersion": 1,
+            "position": [
+                1280,
+                -220
+            ],
+            "id": "agent-navbar",
+            "name": "Agent: Navbar",
+            "inputs": [
+                "main",
+                "model"
+            ],
+            "outputs": [
+                "main"
+            ]
+        },
+        {
+            "parameters": {
+                "options": {}
+            },
+            "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+            "typeVersion": 1,
+            "position": [
+                1080,
+                0
+            ],
+            "id": "grid-model",
+            "name": "Grid Model"
+        },
+        {
+            "parameters": {
+                "promptType": "define",
+                "text": "={{ $json.instruction }}",
+                "hasOutputParser": true
+            },
+            "type": "@n8n/n8n-nodes-langchain.chainLlm",
+            "typeVersion": 1,
+            "position": [
+                1280,
+                0
+            ],
+            "id": "agent-grid",
+            "name": "Agent: Grid",
+            "inputs": [
+                "main",
+                "model"
+            ],
+            "outputs": [
+                "main"
+            ]
+        },
+        {
+            "parameters": {
+                "options": {}
+            },
+            "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+            "typeVersion": 1,
+            "position": [
+                1080,
+                220
+            ],
+            "id": "hero-model",
+            "name": "Hero Model"
+        },
+        {
+            "parameters": {
+                "promptType": "define",
+                "text": "={{ $json.instruction }}",
+                "hasOutputParser": true
+            },
+            "type": "@n8n/n8n-nodes-langchain.chainLlm",
+            "typeVersion": 1,
+            "position": [
+                1280,
+                220
+            ],
+            "id": "agent-hero",
+            "name": "Agent: Hero",
+            "inputs": [
+                "main",
+                "model"
+            ],
+            "outputs": [
+                "main"
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "const allItems = $input.all();\nconst children = allItems.map(item => {\n  try {\n    const raw = item.json.output.replace(/```json/g, '').replace(/```/g, '').trim();\n    return JSON.parse(raw);\n  } catch(e) { return { type: 'FRAME', name: 'Error Node' }; }\n});\n\nreturn { json: {\n  name: \"AI Swarm Output\",\n  type: \"FRAME\",\n  layoutMode: \"VERTICAL\",\n  width: 1440,\n  itemSpacing: 0,\n  background: \"#FFFFFF\",\n  children: children\n} };"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                1600,
+                0
+            ],
+            "id": "assembler",
+            "name": "Assembler"
+        },
+        {
+            "parameters": {
+                "options": {}
+            },
+            "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+            "typeVersion": 1,
+            "position": [
+                1840,
+                220
+            ],
+            "id": "engineer-model",
+            "name": "Engineer Model"
+        },
+        {
+            "parameters": {
+                "promptType": "define",
+                "text": "={{ JSON.stringify($json) }}",
+                "hasOutputParser": true
+            },
+            "type": "@n8n/n8n-nodes-langchain.chainLlm",
+            "typeVersion": 1,
+            "position": [
+                1840,
+                0
+            ],
+            "id": "agent-engineer",
+            "name": "Engineer",
+            "inputs": [
+                "main",
+                "model"
+            ],
+            "outputs": [
+                "main"
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "let raw = $json.output.replace(/```json/g, '').replace(/```/g, '').trim();\nreturn { json: JSON.parse(raw) };"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                2100,
+                0
+            ],
+            "id": "cleanup",
+            "name": "Cleanup"
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={{ $json }}",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1,
+            "position": [
+                2300,
+                0
+            ],
+            "id": "response",
+            "name": "Done"
+        }
+    ],
+    "connections": {
+        "Webhook Trigger": {
+            "main": [
+                [
+                    {
+                        "node": "THE DIRECTOR",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Director Model": {
+            "ai_languageModel": [
+                [
+                    {
+                        "node": "THE DIRECTOR",
+                        "type": "ai_languageModel",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "THE DIRECTOR": {
+            "main": [
+                [
+                    {
+                        "node": "Parse Plan",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Parse Plan": {
+            "main": [
+                [
+                    {
+                        "node": "Router",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Router": {
+            "main": [
+                [
+                    {
+                        "node": "Agent: Navbar",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Agent: Grid",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Agent: Hero",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Assembler",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Navbar Model": {
+            "ai_languageModel": [
+                [
+                    {
+                        "node": "Agent: Navbar",
+                        "type": "ai_languageModel",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Grid Model": {
+            "ai_languageModel": [
+                [
+                    {
+                        "node": "Agent: Grid",
+                        "type": "ai_languageModel",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Hero Model": {
+            "ai_languageModel": [
+                [
+                    {
+                        "node": "Agent: Hero",
+                        "type": "ai_languageModel",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Agent: Navbar": {
+            "main": [
+                [
+                    {
+                        "node": "Assembler",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Agent: Grid": {
+            "main": [
+                [
+                    {
+                        "node": "Assembler",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Agent: Hero": {
+            "main": [
+                [
+                    {
+                        "node": "Assembler",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Assembler": {
+            "main": [
+                [
+                    {
+                        "node": "Engineer",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Engineer Model": {
+            "ai_languageModel": [
+                [
+                    {
+                        "node": "Engineer",
+                        "type": "ai_languageModel",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Engineer": {
+            "main": [
+                [
+                    {
+                        "node": "Cleanup",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Cleanup": {
+            "main": [
+                [
+                    {
+                        "node": "Done",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}

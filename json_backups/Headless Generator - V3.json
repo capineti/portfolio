@@ -1,0 +1,86 @@
+{
+    "name": "Headless Generator - V3",
+    "nodes": [
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "generar-ui-v3",
+                "responseMode": "responseNode",
+                "options": {
+                    "allowedOrigins": "*"
+                }
+            },
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 1,
+            "position": [
+                0,
+                0
+            ],
+            "id": "webhook-v3",
+            "name": "Webhook"
+        },
+        {
+            "parameters": {
+                "model": "gpt-4-turbo",
+                "messages": {
+                    "message": [
+                        {
+                            "role": "system",
+                            "content": "You are a UI generator. Output JSON only. Structure: { type: 'FRAME', layoutMode: 'VERTICAL', children: [...] }. Components: { type: 'COMPONENT', name: 'Button', props: { label: 'Click' } }."
+                        },
+                        {
+                            "role": "user",
+                            "content": "={{$json.body.prompt}}"
+                        }
+                    ]
+                }
+            },
+            "type": "@n8n/n8n-nodes-langchain.chainOpenAi",
+            "typeVersion": 1,
+            "position": [
+                200,
+                0
+            ],
+            "id": "ai-v3",
+            "name": "OpenAI Generator"
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={{ JSON.parse($json.text) }}"
+            },
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1,
+            "position": [
+                400,
+                0
+            ],
+            "id": "respond-v3",
+            "name": "Respond"
+        }
+    ],
+    "connections": {
+        "Webhook": {
+            "main": [
+                [
+                    {
+                        "node": "OpenAI Generator",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "OpenAI Generator": {
+            "main": [
+                [
+                    {
+                        "node": "Respond",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}

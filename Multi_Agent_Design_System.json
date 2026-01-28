@@ -1,0 +1,333 @@
+{
+    "name": "Multi-Agent Design System (Architect -> Stylist -> Photographer)",
+    "nodes": [
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "generar-ui-multi-agent",
+                "responseMode": "responseNode",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2.1,
+            "position": [
+                -480,
+                0
+            ],
+            "id": "webhook-start",
+            "name": "Webhook Trigger"
+        },
+        {
+            "parameters": {
+                "respondWith": "text",
+                "responseBody": "Agents Started...",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1.5,
+            "position": [
+                -280,
+                -180
+            ],
+            "id": "ack-webhook",
+            "name": "Quick Response"
+        },
+        {
+            "parameters": {
+                "assignments": {
+                    "assignments": [
+                        {
+                            "name": "prompt",
+                            "value": "={{ $json.body.data.message.conversation || $json.body.data.message.extendedTextMessage.text || 'Dashboard' }}",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "includeOtherFields": true,
+                "options": {}
+            },
+            "type": "n8n-nodes-base.set",
+            "typeVersion": 3.4,
+            "position": [
+                0,
+                -120
+            ],
+            "id": "set-prompt",
+            "name": "Set Prompt"
+        },
+        {
+            "parameters": {
+                "promptType": "define",
+                "text": "== AGENT: ARCHITECT (STRUCTURE & LAYOUT) ==\n\nYou are a WORLD-CLASS UI/UX Architect. Your goal is to define the STRUCTURAL SKELETON of a Premium Interface (like Airbnb/Apple).\n\nUSER PROMPT: \"{{ $json.prompt }}\"\n\n## 📐 STRUCTURAL RULES (CRITICAL):\n1. **MAIN CONTAINER:** Start with a root FRAME (Desktop 1440), layoutMode: VERTICAL.\n2. **NAVBAR:** Always include a top Navbar (Horizontal, Space Between). If Logo is needed, create a TEXT_NODE (Role: Title, 24px).\n3. **GRID SYSTEM:** For lists/cards, use a 'Grid Section' container. Structure: Vertical Stack -> Rows (Horizontal). Max 3-4 items per row. Spacing: 32px.\n4. **INPUTS:** If inputs are needed, ALWAYS add a small label (TEXT_NODE) above them. No 'silent' inputs.\n5. **COMPONENTS:** Use `type: \"COMPONENT\"` for buttons/icons if implied. Default to wireframe/structure.\n6. **VARIETY:** Be creative. Use Sidebars, Hero Sections, Split Views. Don't just stack rectangles.\n\nRETURN ONLY THE SKELETON JSON (No colors yet, just structure).",
+                "options": {}
+            },
+            "type": "@n8n/n8n-nodes-langchain.agent",
+            "typeVersion": 3,
+            "position": [
+                500,
+                0
+            ],
+            "id": "agent-architect",
+            "name": "Agent: Architect (Structure)"
+        },
+        {
+            "parameters": {
+                "modelName": "models/gemini-1.5-pro-latest",
+                "options": {
+                    "temperature": 0.4
+                }
+            },
+            "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+            "typeVersion": 1,
+            "position": [
+                500,
+                220
+            ],
+            "id": "model-architect",
+            "name": "Gemini Architect",
+            "credentials": {
+                "googlePalmApi": {
+                    "id": "A4DmOX9XoJsDMGIX",
+                    "name": "Google Gemini(PaLM) Api account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "promptType": "define",
+                "text": "== AGENT: STYLIST (VISUALS & COPY) ==\n\nYou are a Senior UI Visual Designer. You receive a wireframe.\n\nINPUT JSON: {{ $json.output }}\n\nGOAL: Transform the wireframe into a HIGH-FIDELITY, PUBLISH-READY design.\n\n## 🎨 VISUAL RULES:\n1. **PREMIUM AESTHETIC:** Use Glassmorphism, subtle shadows, or sleek Dark Mode. Use `background`: \"linear-gradient(...)\" or hex codes.\n2. **REALISTIC COPY:** **CRITICAL:** Replace all placeholders with REAL text. No 'Lorem Ipsum'. Example: Instead of 'Card Title', use 'Luxury Villa in Bali - $450/night'.\n3. **TYPOGRAPHY:** Ensure readable contrasts (`fontColor`). Headings should be dark/bold, subtext gray.\n4. **SOLIDIFY:** Ensure every frame has a `background` (white or colored), don't leave transparent holes unless intentional.\n\nReturn the FULL JSON with applied styles.",
+                "options": {}
+            },
+            "type": "@n8n/n8n-nodes-langchain.agent",
+            "typeVersion": 3,
+            "position": [
+                900,
+                0
+            ],
+            "id": "agent-stylist",
+            "name": "Agent: Stylist (Visuals)"
+        },
+        {
+            "parameters": {
+                "modelName": "models/gemini-1.5-pro-latest",
+                "options": {
+                    "temperature": 0.7
+                }
+            },
+            "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+            "typeVersion": 1,
+            "position": [
+                900,
+                220
+            ],
+            "id": "model-stylist",
+            "name": "Gemini Stylist",
+            "credentials": {
+                "googlePalmApi": {
+                    "id": "A4DmOX9XoJsDMGIX",
+                    "name": "Google Gemini(PaLM) Api account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "promptType": "define",
+                "text": "== AGENT: PHOTOGRAPHER (ASSETS) ==\n\nYou are an AI Asset Manager.\n\nINPUT JSON: {{ $json.output }}\n\nGOAL: Add real image URLs to all `IMAGE` nodes.\n\nRULES:\n1. Search the JSON for nodes with `type: \"IMAGE\"`.\n2. For each image, understand its context (e.g., \"Luxury Villa\", \"User Avatar\").\n3. Add a `url` property with a valid Unsplash Source URL (e.g., \"https://source.unsplash.com/800x600/?luxury,villa\" or \"https://source.unsplash.com/200x200/?portrait\").\n4. Return the FINAL JSON.",
+                "options": {}
+            },
+            "type": "@n8n/n8n-nodes-langchain.agent",
+            "typeVersion": 3,
+            "position": [
+                1300,
+                0
+            ],
+            "id": "agent-photographer",
+            "name": "Agent: Photographer (Images)"
+        },
+        {
+            "parameters": {
+                "modelName": "models/gemini-1.5-pro-latest",
+                "options": {
+                    "temperature": 0.5
+                }
+            },
+            "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+            "typeVersion": 1,
+            "position": [
+                1300,
+                220
+            ],
+            "id": "model-photographer",
+            "name": "Gemini Photographer",
+            "credentials": {
+                "googlePalmApi": {
+                    "id": "A4DmOX9XoJsDMGIX",
+                    "name": "Google Gemini(PaLM) Api account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "jsCode": "// VALIDATE & CLEAN\nconst raw = $input.first().json.output;\nlet jsonString = raw;\n// Clean markdown\njsonString = jsonString.replace(/```json/g, '').replace(/```/g, '').trim();\n\ntry {\n  const start = jsonString.indexOf('{');\n  const end = jsonString.lastIndexOf('}');\n  if (start > -1 && end > -1) {\n     jsonString = jsonString.substring(start, end + 1);\n  }\n  const ui = JSON.parse(jsonString);\n  return [{ json: ui }];\n} catch(e) {\n  throw new Error(\"Invalid JSON final: \" + e.message);\n}",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                1600,
+                0
+            ],
+            "id": "validate-final",
+            "name": "Validator (Final)"
+        },
+        {
+            "parameters": {
+                "dataTableId": {
+                    "__rl": true,
+                    "value": "DItViTlGReZeI1ks",
+                    "mode": "list",
+                    "cachedResultName": "figma_headless_sessions",
+                    "cachedResultUrl": "/projects/4GLzpDdUGYQOiIUs/datatables/DItViTlGReZeI1ks"
+                },
+                "columns": {
+                    "mappingMode": "defineBelow",
+                    "value": {
+                        "payload": "={{ JSON.stringify($json) }}"
+                    },
+                    "matchingColumns": [
+                        "payload"
+                    ],
+                    "schema": [
+                        {
+                            "id": "payload",
+                            "displayName": "payload",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "readOnly": false,
+                            "removed": false
+                        }
+                    ],
+                    "attemptToConvertTypes": false,
+                    "convertFieldsToString": false
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.dataTable",
+            "typeVersion": 1,
+            "position": [
+                1900,
+                0
+            ],
+            "id": "insert-db-multi-agent",
+            "name": "Insert DB (Multi-Agent)"
+        }
+    ],
+    "connections": {
+        "Webhook Trigger": {
+            "main": [
+                [
+                    {
+                        "node": "Quick Response",
+                        "type": "main",
+                        "index": 0
+                    },
+                    {
+                        "node": "Set Prompt",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Set Prompt": {
+            "main": [
+                [
+                    {
+                        "node": "Agent: Architect (Structure)",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Gemini Architect": {
+            "ai_languageModel": [
+                [
+                    {
+                        "node": "Agent: Architect (Structure)",
+                        "type": "ai_languageModel",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Agent: Architect (Structure)": {
+            "main": [
+                [
+                    {
+                        "node": "Agent: Stylist (Visuals)",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Gemini Stylist": {
+            "ai_languageModel": [
+                [
+                    {
+                        "node": "Agent: Stylist (Visuals)",
+                        "type": "ai_languageModel",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Agent: Stylist (Visuals)": {
+            "main": [
+                [
+                    {
+                        "node": "Agent: Photographer (Images)",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Gemini Photographer": {
+            "ai_languageModel": [
+                [
+                    {
+                        "node": "Agent: Photographer (Images)",
+                        "type": "ai_languageModel",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Agent: Photographer (Images)": {
+            "main": [
+                [
+                    {
+                        "node": "Validator (Final)",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Validator (Final)": {
+            "main": [
+                [
+                    {
+                        "node": "Insert DB (Multi-Agent)",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}

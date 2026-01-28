@@ -1,0 +1,834 @@
+{
+    "name": "Agente Vigilante (FINAL - SEPARATED & IDEMPOTENT)",
+    "nodes": [
+        {
+            "parameters": {
+                "rule": {
+                    "interval": [
+                        {
+                            "field": "hours"
+                        }
+                    ]
+                }
+            },
+            "type": "n8n-nodes-base.scheduleTrigger",
+            "typeVersion": 1.1,
+            "position": [
+                -10832,
+                -336
+            ],
+            "id": "1b46c012-0346-4a0b-b553-f5bb51811007",
+            "name": "Disparador Horario1"
+        },
+        {
+            "parameters": {
+                "operation": "list",
+                "useQueryString": true,
+                "queryString": "={{ \"'1cbRkrTruj6i8rimSkpP7CTi-dj0em_GF' in parents and modifiedTime > '\" + $now.minus({ days: 9 }).toISO() + \"' and trashed = false\" }}",
+                "limit": 100,
+                "options": {
+                    "fields": "*"
+                }
+            },
+            "type": "n8n-nodes-base.googleDrive",
+            "typeVersion": 2,
+            "position": [
+                -10608,
+                -528
+            ],
+            "id": "1b120fa3-e36b-46dc-8954-d78af50180da",
+            "name": "Listar Consuelo",
+            "alwaysOutputData": true,
+            "credentials": {
+                "googleDriveOAuth2Api": {
+                    "id": "c8RhhwWsrFFMDWAC",
+                    "name": "Google Drive account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "operation": "list",
+                "useQueryString": true,
+                "queryString": "={{ \"name contains 'Reunión' and modifiedTime > '\" + $now.minus({ days: 7 }).toISO() + \"' and trashed = false and 'lucia@lxarch.com' in owners\" }}",
+                "limit": 100,
+                "options": {
+                    "fields": "*"
+                }
+            },
+            "type": "n8n-nodes-base.googleDrive",
+            "typeVersion": 2,
+            "position": [
+                -10608,
+                -336
+            ],
+            "id": "692ccc15-7d76-40f5-9f6c-105a54e63710",
+            "name": "Listar Lucia",
+            "alwaysOutputData": true,
+            "credentials": {
+                "googleDriveOAuth2Api": {
+                    "id": "c8RhhwWsrFFMDWAC",
+                    "name": "Google Drive account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "operation": "list",
+                "useQueryString": true,
+                "queryString": "={{ \"name contains 'Reunión' and modifiedTime > '\" + $now.minus({ days: 7 }).toISO() + \"' and trashed = false and 'cari@lxarch.com' in owners\" }}",
+                "limit": 100,
+                "options": {
+                    "fields": "*"
+                }
+            },
+            "type": "n8n-nodes-base.googleDrive",
+            "typeVersion": 2,
+            "position": [
+                -10608,
+                -128
+            ],
+            "id": "b5feac8a-a1aa-4647-a1fd-bc1a36290cc",
+            "name": "Listar Cari",
+            "alwaysOutputData": true,
+            "credentials": {
+                "googleDriveOAuth2Api": {
+                    "id": "c8RhhwWsrFFMDWAC",
+                    "name": "Google Drive account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "operation": "list",
+                "useQueryString": true,
+                "queryString": "={{ \"name contains 'Reunión' and trashed = false and 'cecelia@lxarch.com' in owners\" }}",
+                "limit": 100,
+                "options": {
+                    "fields": []
+                },
+                "includeItemsFromAllDrives": true,
+                "supportsAllDrives": true
+            },
+            "type": "n8n-nodes-base.googleDrive",
+            "typeVersion": 2,
+            "position": [
+                -10608,
+                64
+            ],
+            "id": "14290b94-01d4-4c34-9bad-b5fe3f469979",
+            "name": "Listar Cecelia",
+            "alwaysOutputData": true,
+            "credentials": {
+                "googleDriveOAuth2Api": {
+                    "id": "c8RhhwWsrFFMDWAC",
+                    "name": "Google Drive account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "mode": "append",
+                "numberInputs": 4
+            },
+            "type": "n8n-nodes-base.merge",
+            "typeVersion": 3,
+            "position": [
+                -10272,
+                -224
+            ],
+            "id": "0ac9c023-7601-4a06-a1b6-6db8271ce4ab",
+            "name": "Merge"
+        },
+        {
+            "parameters": {
+                "jsCode": "const items = $input.all();\n// Filter out empty items (ghosts), videos, and shortcuts\nreturn items.filter(item => {\n    // 1. Eliminar fantasmas (Always Output Data)\n    if (!item.json.id || !item.json.name) return false;\n    \n    // 2. Filtros de tipo\n    const mime = item.json.mimeType || '';\n    if (mime.includes('video') || mime.includes('audio')) return false;\n    if (item.json.name && item.json.name.endsWith('Recording')) return false;\n    return true;\n});"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                -10048,
+                -224
+            ],
+            "id": "38e773d5-f3b9-4600-8717-2486eabb06fd",
+            "name": "Filtrar Solo Docs"
+        },
+        {
+            "parameters": {
+                "values": {
+                    "string": [
+                        {
+                            "name": "nombreVendedor",
+                            "value": "Cecelia"
+                        },
+                        {
+                            "name": "fechaReunion",
+                            "value": "={{ $json.name.match(/(\\d{4}[\\/\\-]\\d{2}[\\/\\-]\\d{2})/) ? $json.name.match(/(\\d{4}[\\/\\-]\\d{2}[\\/\\-]\\d{2})/)[1].replace(/\\//g, '-') : ($json.createdTime ? $json.createdTime.split('T')[0] : $now.toFormat('yyyy-MM-dd')) }}"
+                        },
+                        {
+                            "name": "summary",
+                            "value": "={{ $json.name.replace(/\\d{4}[\\/\\-]\\d{2}[\\/\\-]\\d{2}/, '').trim() || 'Reunion' }}"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.set",
+            "typeVersion": 2,
+            "position": [
+                -9840,
+                -224
+            ],
+            "id": "cb291690-2f27-4a2c-a74c-4e72e58332dd",
+            "name": "Estampar Datos"
+        },
+        {
+            "parameters": {
+                "options": {}
+            },
+            "type": "n8n-nodes-base.splitInBatches",
+            "typeVersion": 3,
+            "position": [
+                -9584,
+                -224
+            ],
+            "id": "d508f985-2f2a-466a-b827-3b5395e0ee17",
+            "name": "Loop Controller"
+        },
+        {
+            "parameters": {
+                "operation": "download",
+                "fileId": {
+                    "__rl": true,
+                    "value": "={{ $json.id }}",
+                    "mode": "id"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.googleDrive",
+            "typeVersion": 3,
+            "position": [
+                -9376,
+                -224
+            ],
+            "id": "1c9d8389-b42a-4f81-8933-6b7838eabeb4",
+            "name": "Descargar Archivo",
+            "credentials": {
+                "googleDriveOAuth2Api": {
+                    "id": "c8RhhwWsrFFMDWAC",
+                    "name": "Google Drive account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "setAllData": false,
+                "options": {}
+            },
+            "type": "n8n-nodes-base.moveBinaryData",
+            "typeVersion": 1.1,
+            "position": [
+                -9168,
+                -224
+            ],
+            "id": "4481df67-bbde-4c18-8463-7f0c296f0404",
+            "name": "Texto a JSON"
+        },
+        {
+            "parameters": {
+                "jsCode": "const items = $input.all();\nconst item = items[0];\nconst text = item.json.text || \"\";\n\n// IDENTIFICAR VENDEDORA\nlet detectedVendor = item.json.nombreVendedor; \nconst header = text.substring(0, 2000); \n\nconst match = (regex) => regex.test(header);\n\nif (match(/Luc[ií]a[\\s\\u00A0]*Lebrato/i) || match(/lucia@lxarch\\.com/i)) {\n    detectedVendor = \"Lucia Lebrato\";\n} else if (match(/Consuelo[\\s\\u00A0]*Mardones/i) || match(/consuelo@lxarch\\.com/i)) {\n    detectedVendor = \"Consuelo Mardones\";\n} else if (match(/Cari[\\s\\u00A0]*Vald[eé]s/i) || match(/cari@lxarch\\.com/i)) {\n    detectedVendor = \"Cari Valdés\";\n} else if (match(/Cecelia/i) || match(/cecelia@lxarch\\.com/i)) {\n    detectedVendor = \"Cecelia\";\n}\n\nitem.json.nombreVendedor = detectedVendor;\nitem.json.transcriptionTextFull = text; \n\nreturn [item];"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                -8976,
+                -224
+            ],
+            "id": "456147f2-0006-4983-ab51-5c69fe1b946a",
+            "name": "Identificar Vendedora"
+        },
+        {
+            "parameters": {
+                "jsCode": "const items = $input.all();\nconst newItem = items[0].json;\n\n// FORZADO MANUAL A SEMANA 4\nconst weekFolderName = 'Semana 04 - 2026';\n\nnewItem['weekFolderName'] = weekFolderName;\n\nreturn [{json: newItem}];"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                -8768,
+                -224
+            ],
+            "id": "03589279-4b82-43e5-b933-c512a000cfd9",
+            "name": "Calcular Semana1"
+        },
+        {
+            "parameters": {
+                "resource": "fileFolder",
+                "queryString": "={{ \"name = '\" + $json.weekFolderName + \"' and trashed = false\" }}",
+                "returnAll": true,
+                "filter": {
+                    "folderId": {
+                        "__rl": true,
+                        "value": "1aCOa0Pe4DYfZxeQR8MYMzaJS3CWoMwal",
+                        "mode": "list"
+                    },
+                    "whatToSearch": "folders"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.googleDrive",
+            "typeVersion": 3,
+            "position": [
+                -8576,
+                -224
+            ],
+            "id": "da3c9b26-dd62-484c-86de-71c391a5d4ce",
+            "name": "Buscar Carpeta Semana1",
+            "alwaysOutputData": true,
+            "credentials": {
+                "googleDriveOAuth2Api": {
+                    "id": "c8RhhwWsrFFMDWAC",
+                    "name": "Google Drive account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "options": {
+                        "caseSensitive": true,
+                        "leftValue": "",
+                        "typeValidation": "strict",
+                        "version": 2
+                    },
+                    "conditions": [
+                        {
+                            "id": "weekcheck",
+                            "leftValue": "={{ $json.id }}",
+                            "rightValue": "",
+                            "operator": {
+                                "type": "string",
+                                "operation": "exists",
+                                "singleValue": true
+                            }
+                        }
+                    ],
+                    "combinator": "and"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 2.2,
+            "position": [
+                -8368,
+                -224
+            ],
+            "id": "11469a55-1357-4f33-b564-5ef8d82ff743",
+            "name": "If Semana Existe1"
+        },
+        {
+            "parameters": {
+                "jsCode": "const items = $input.all();\n// Recuperamos la metadata del nodo que preparó los datos originales\n// Usamos .last() para asegurarnos de coger el dato de la ejecución actual en el loop\nconst metadata = $('Code in JavaScript3').last().json; \n\nreturn items.map((item) => {\n    // Buscamos la respuesta de la IA en varios campos posibles por seguridad\n    const ai_output = item.json.output || item.json.text || item.json.message?.content || item.json.content || \"ERROR: LA IA NO DEVOLVIÓ TEXTO\";\n    \n    // Generamos el nombre del reporte basándonos en el nombre original\n    let reportName = \"Reporte_Cuantitativo.txt\";\n    if (metadata.nombre_archivo_reporte) {\n        reportName = metadata.nombre_archivo_reporte.replace('CUALITATIVO', 'CUANTITATIVO');\n    }\n\n    return {\n        json: {\n            output: ai_output,\n            folderId: metadata.folderId,\n            originalFileId: metadata.originalFileId,\n            nombre_archivo_reporte: reportName\n        }\n    };\n});",
+                "resource": "folder",
+                "name": "={{ $('Calcular Semana1').item.json.weekFolderName }}",
+                "driveId": {
+                    "__rl": true,
+                    "mode": "list",
+                    "value": "My Drive"
+                },
+                "folderId": {
+                    "__rl": true,
+                    "value": "1aCOa0Pe4DYfZxeQR8MYMzaJS3CWoMwal",
+                    "mode": "list"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.googleDrive",
+            "typeVersion": 3,
+            "position": [
+                -8176,
+                -48
+            ],
+            "id": "7bccb6f9-e400-4e6c-a6ca-cb723e095430",
+            "name": "Crear Carpeta Semana",
+            "credentials": {
+                "googleDriveOAuth2Api": {
+                    "id": "c8RhhwWsrFFMDWAC",
+                    "name": "Google Drive account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "jsCode": "return $input.all();"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                -7968,
+                -240
+            ],
+            "id": "57d959ac-bb6a-4eee-8e46-4f9c410e29f6",
+            "name": "Merge Semana1"
+        },
+        {
+            "parameters": {
+                "resource": "fileFolder",
+                "queryString": "={{ \"name = '\" + $('Calcular Semana1').item.json.nombreVendedor + \"' and trashed = false\" }}",
+                "returnAll": true,
+                "filter": {
+                    "folderId": {
+                        "__rl": true,
+                        "value": "={{ $json.id }}",
+                        "mode": "id"
+                    },
+                    "whatToSearch": "folders"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.googleDrive",
+            "typeVersion": 3,
+            "position": [
+                -7776,
+                -240
+            ],
+            "id": "0a5d8085-d6da-4d05-bc6f-b6dbaa810da1",
+            "name": "Buscar Carpeta Vendedor1",
+            "alwaysOutputData": true,
+            "credentials": {
+                "googleDriveOAuth2Api": {
+                    "id": "c8RhhwWsrFFMDWAC",
+                    "name": "Google Drive account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "options": {
+                        "caseSensitive": true,
+                        "leftValue": "",
+                        "typeValidation": "strict",
+                        "version": 2
+                    },
+                    "conditions": [
+                        {
+                            "id": "vendorcheck",
+                            "leftValue": "={{ $json.id }}",
+                            "rightValue": "",
+                            "operator": {
+                                "type": "string",
+                                "operation": "exists",
+                                "singleValue": true
+                            }
+                        }
+                    ],
+                    "combinator": "and"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 2.2,
+            "position": [
+                -7568,
+                -240
+            ],
+            "id": "f86a5e29-933f-44f7-8ee5-23c5c461b57a",
+            "name": "If Vendedor Existe1"
+        },
+        {
+            "parameters": {
+                "resource": "folder",
+                "name": "={{ $('Calcular Semana1').item.json.nombreVendedor }}",
+                "driveId": {
+                    "__rl": true,
+                    "mode": "list",
+                    "value": "My Drive"
+                },
+                "folderId": {
+                    "__rl": true,
+                    "value": "={{ $('Merge Semana1').item.json.id }}",
+                    "mode": "id"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.googleDrive",
+            "typeVersion": 3,
+            "position": [
+                -7376,
+                -48
+            ],
+            "id": "966dab11-d6ad-495f-977c-f400be1ab7b0",
+            "name": "Crear Carpeta Vendedor",
+            "credentials": {
+                "googleDriveOAuth2Api": {
+                    "id": "c8RhhwWsrFFMDWAC",
+                    "name": "Google Drive account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "jsCode": "return $input.all();"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                -7168,
+                -256
+            ],
+            "id": "2244ed8c-ab3b-4451-8ec7-0f73d527ec7b",
+            "name": "Merge Vendedor1"
+        },
+        {
+            "parameters": {
+                "resource": "fileFolder",
+                "queryString": "={{ (() => { let d = $('Calcular Semana1').item.json.fechaReunion; if(d && d.includes('/')) d = d.replace(/\\//g, '-'); const n = d + ' - ' + $('Calcular Semana1').item.json.summary; return \"name = '\" + n + \"' and trashed = false\"; })() }}",
+                "returnAll": true,
+                "filter": {
+                    "folderId": {
+                        "__rl": true,
+                        "value": "={{ $json.id }}",
+                        "mode": "id"
+                    },
+                    "whatToSearch": "folders"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.googleDrive",
+            "typeVersion": 3,
+            "position": [
+                -6976,
+                -256
+            ],
+            "id": "31cce0cc-e0a8-44f5-9da9-bd02ade2c4e1",
+            "name": "Buscar Carpeta Reunion1",
+            "alwaysOutputData": true,
+            "credentials": {
+                "googleDriveOAuth2Api": {
+                    "id": "c8RhhwWsrFFMDWAC",
+                    "name": "Google Drive account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "options": {
+                        "caseSensitive": true,
+                        "leftValue": "",
+                        "typeValidation": "strict",
+                        "version": 2
+                    },
+                    "conditions": [
+                        {
+                            "id": "meetingcheck",
+                            "leftValue": "={{ $json.id }}",
+                            "rightValue": "",
+                            "operator": {
+                                "type": "string",
+                                "operation": "exists",
+                                "singleValue": true
+                            }
+                        }
+                    ],
+                    "combinator": "and"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 2.2,
+            "position": [
+                -6768,
+                -256
+            ],
+            "id": "55b91aa1-0c5f-4ac8-9fb3-5d3eab36268b",
+            "name": "If Reunion Existe1"
+        }
+    ],
+    "pinData": {},
+    "connections": {
+        "Disparador Horario1": {
+            "main": [
+                [
+                    {
+                        "node": "Listar Consuelo",
+                        "type": "main",
+                        "index": 0
+                    },
+                    {
+                        "node": "Listar Lucia",
+                        "type": "main",
+                        "index": 0
+                    },
+                    {
+                        "node": "Listar Cari",
+                        "type": "main",
+                        "index": 0
+                    },
+                    {
+                        "node": "Listar Cecelia",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Listar Consuelo": {
+            "main": [
+                [
+                    {
+                        "node": "Merge",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Listar Lucia": {
+            "main": [
+                [
+                    {
+                        "node": "Merge",
+                        "type": "main",
+                        "index": 1
+                    }
+                ]
+            ]
+        },
+        "Listar Cari": {
+            "main": [
+                [
+                    {
+                        "node": "Merge",
+                        "type": "main",
+                        "index": 2
+                    }
+                ]
+            ]
+        },
+        "Listar Cecelia": {
+            "main": [
+                [
+                    {
+                        "node": "Merge",
+                        "type": "main",
+                        "index": 3
+                    }
+                ]
+            ]
+        },
+        "Merge": {
+            "main": [
+                [
+                    {
+                        "node": "Filtrar Solo Docs",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Filtrar Solo Docs": {
+            "main": [
+                [
+                    {
+                        "node": "Estampar Datos",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Estampar Datos": {
+            "main": [
+                [
+                    {
+                        "node": "Loop Controller",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Loop Controller": {
+            "main": [
+                [],
+                [
+                    {
+                        "node": "Descargar Archivo",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Descargar Archivo": {
+            "main": [
+                [
+                    {
+                        "node": "Texto a JSON",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Texto a JSON": {
+            "main": [
+                [
+                    {
+                        "node": "Identificar Vendedora",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Identificar Vendedora": {
+            "main": [
+                [
+                    {
+                        "node": "Calcular Semana1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Calcular Semana1": {
+            "main": [
+                [
+                    {
+                        "node": "Buscar Carpeta Semana1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Buscar Carpeta Semana1": {
+            "main": [
+                [
+                    {
+                        "node": "If Semana Existe1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "If Semana Existe1": {
+            "main": [
+                [
+                    {
+                        "node": "Merge Semana1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Crear Carpeta Semana",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Crear Carpeta Semana": {
+            "main": [
+                [
+                    {
+                        "node": "Merge Semana1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Merge Semana1": {
+            "main": [
+                [
+                    {
+                        "node": "Buscar Carpeta Vendedor1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Buscar Carpeta Vendedor1": {
+            "main": [
+                [
+                    {
+                        "node": "If Vendedor Existe1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "If Vendedor Existe1": {
+            "main": [
+                [
+                    {
+                        "node": "Merge Vendedor1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Crear Carpeta Vendedor",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Crear Carpeta Vendedor": {
+            "main": [
+                [
+                    {
+                        "node": "Merge Vendedor1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Merge Vendedor1": {
+            "main": [
+                [
+                    {
+                        "node": "Buscar Carpeta Reunion1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Buscar Carpeta Reunion1": {
+            "main": [
+                [
+                    {
+                        "node": "If Reunion Existe1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "active": true,
+    "settings": {
+        "executionOrder": "v1",
+        "availableInMCP": false
+    },
+    "versionId": "final-v1",
+    "meta": {
+        "instanceId": "3efa0810f678680b3ab9873a809d017fbd7c8833aae452b14a057994d649074b"
+    },
+    "id": "ze8MciRPCqORdhLJ",
+    "tags": []
+}

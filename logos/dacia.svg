@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 100" fill="none">
+
+<path d="M30 20 H90 L100 40 L90 60 H30 L40 40 Z" stroke="white" stroke-width="8" fill="none"/>
+<path d="M110 20 H170 L160 40 L170 60 H110 L120 40 Z" stroke="white" stroke-width="8" fill="none" transform="scale(-1, 1) translate(-200, 0)"/>
+<text x="100" y="85" dominant-baseline="middle" text-anchor="middle" font-family="Arial, sans-serif" font-weight="bold" font-size="20" fill="white" letter-spacing="8">DACIA</text>
+
+</svg>

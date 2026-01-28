@@ -1,0 +1,368 @@
+{
+    "name": "Agente Director Semanal (Consolidación)",
+    "nodes": [
+        {
+            "parameters": {
+                "rule": {
+                    "interval": [
+                        {
+                            "field": "weeks",
+                            "triggerAtDay": [
+                                5
+                            ],
+                            "triggerAtHour": 18
+                        }
+                    ]
+                }
+            },
+            "type": "n8n-nodes-base.scheduleTrigger",
+            "typeVersion": 1.2,
+            "position": [
+                0,
+                0
+            ],
+            "id": "schedule-trigger-weekly",
+            "name": "Schedule Trigger"
+        },
+        {
+            "parameters": {
+                "jsCode": "const now = $now; const weekNumber = now.weekNumber; const year = now.weekYear; const weekFolderName = `Semana ${String(weekNumber).padStart(2, '0')} - ${year}`; return [ { json: { weekFolderName: weekFolderName } } ];"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                220,
+                0
+            ],
+            "id": "calc-week-name",
+            "name": "Calcular Nombre de Semana"
+        },
+        {
+            "parameters": {
+                "resource": "fileFolder",
+                "queryString": "={{ $json.weekFolderName }}",
+                "filter": {
+                    "folderId": {
+                        "__rl": true,
+                        "value": "1A6LEUdnKBpljOVHrOeZ7p9GaDqYDLeoa",
+                        "mode": "list"
+                    }
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.googleDrive",
+            "typeVersion": 3,
+            "position": [
+                440,
+                0
+            ],
+            "id": "search-week-folder",
+            "name": "Buscar Carpeta Semana"
+        },
+        {
+            "parameters": {
+                "resource": "fileFolder",
+                "returnAll": true,
+                "filter": {
+                    "folderId": {
+                        "__rl": true,
+                        "value": "={{ $json.id }}",
+                        "mode": "id"
+                    },
+                    "whatToSearch": "folders"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.googleDrive",
+            "typeVersion": 3,
+            "position": [
+                660,
+                0
+            ],
+            "id": "search-vendor-folders",
+            "name": "Buscar Carpetas de Vendedores"
+        },
+        {
+            "parameters": {
+                "resource": "fileFolder",
+                "returnAll": true,
+                "filter": {
+                    "folderId": {
+                        "__rl": true,
+                        "value": "={{ $json.id }}",
+                        "mode": "id"
+                    },
+                    "whatToSearch": "folders"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.googleDrive",
+            "typeVersion": 3,
+            "position": [
+                880,
+                0
+            ],
+            "id": "search-meeting-folders",
+            "name": "Buscar Carpetas de Reuniones"
+        },
+        {
+            "parameters": {
+                "resource": "fileFolder",
+                "searchMethod": "query",
+                "queryString": "='{{ $json.id }}' in parents and name contains 'ANALISIS_'",
+                "returnAll": true,
+                "filter": {},
+                "options": {}
+            },
+            "type": "n8n-nodes-base.googleDrive",
+            "typeVersion": 3,
+            "position": [
+                1100,
+                0
+            ],
+            "id": "search-analysis-files",
+            "name": "Buscar Archivos de Análisis",
+            "alwaysOutputData": true
+        },
+        {
+            "parameters": {
+                "operation": "download",
+                "fileId": {
+                    "__rl": true,
+                    "value": "={{ $json.id }}",
+                    "mode": "id"
+                },
+                "options": {
+                    "googleFileConversion": {
+                        "conversion": {
+                            "docsToFormat": "text/plain"
+                        }
+                    }
+                }
+            },
+            "type": "n8n-nodes-base.googleDrive",
+            "typeVersion": 3,
+            "position": [
+                1320,
+                0
+            ],
+            "id": "download-reports",
+            "name": "Descargar Informes"
+        },
+        {
+            "parameters": {
+                "operation": "text",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.extractFromFile",
+            "typeVersion": 1,
+            "position": [
+                1540,
+                0
+            ],
+            "id": "extract-text-reports",
+            "name": "Extraer Texto de Informes"
+        },
+        {
+            "parameters": {
+                "jsCode": "const informes = $input.all(); let informeMaster = \"\"; for (const informe of informes) { const texto = informe.json.data || informe.json.text || informe.json.content; if (texto && texto.trim().length > 0) { informeMaster += texto + \"\\n\\n========================================\\n\\n\"; } } const vendedoresNodes = $('Buscar Carpetas de Vendedores').all(); const totalVendedores = vendedoresNodes.length; if (informeMaster.trim().length === 0) { informeMaster = \"No se encontraron informes para analizar esta semana.\"; } return [{\n  json: {\n    informe_master_completo: informeMaster,\n    total_vendedores: totalVendedores\n  }\n}];"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                1760,
+                0
+            ],
+            "id": "group-reports",
+            "name": "Agrupar Informes"
+        },
+        {
+            "parameters": {
+                "promptType": "define",
+                "text": "=Eres un Director de Ventas y Coach de alto rendimiento... (PROMPT ORIGINAL CONSOLIDADO)",
+                "options": {}
+            },
+            "type": "@n8n/n8n-nodes-langchain.agent",
+            "typeVersion": 3,
+            "position": [
+                1980,
+                0
+            ],
+            "id": "sales-director-agent",
+            "name": "Director de Ventas",
+            "credentials": {
+                "openAiApi": {
+                    "id": "O37TWRmsjgm0WBxD",
+                    "name": "OpenAi account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "model": {
+                    "__rl": true,
+                    "mode": "list",
+                    "value": "gpt-4.1-mini"
+                },
+                "options": {
+                    "temperature": 0
+                }
+            },
+            "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+            "typeVersion": 1.2,
+            "position": [
+                1980,
+                200
+            ],
+            "id": "openai-chat-model-director",
+            "name": "OpenAI Chat Model"
+        },
+        {
+            "parameters": {
+                "resource": "message",
+                "operation": "send",
+                "toEmail": "sccapineti@gmail.com",
+                "subject": "=\"Informe de Patrones Semanal - \" + $('Calcular Nombre de Semana').first().json.weekFolderName",
+                "message": "={{ $json.output }}",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.gmail",
+            "typeVersion": 2.1,
+            "position": [
+                2200,
+                0
+            ],
+            "id": "send-email-director",
+            "name": "Enviar Informe Director",
+            "credentials": {
+                "googleApi": {
+                    "id": "GlTJ08Uam3i5F1J0",
+                    "name": "Google Calendar account"
+                }
+            }
+        }
+    ],
+    "connections": {
+        "schedule-trigger-weekly": {
+            "main": [
+                [
+                    {
+                        "node": "calc-week-name",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "calc-week-name": {
+            "main": [
+                [
+                    {
+                        "node": "search-week-folder",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "search-week-folder": {
+            "main": [
+                [
+                    {
+                        "node": "search-vendor-folders",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "search-vendor-folders": {
+            "main": [
+                [
+                    {
+                        "node": "search-meeting-folders",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "search-meeting-folders": {
+            "main": [
+                [
+                    {
+                        "node": "search-analysis-files",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "search-analysis-files": {
+            "main": [
+                [
+                    {
+                        "node": "download-reports",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "download-reports": {
+            "main": [
+                [
+                    {
+                        "node": "extract-text-reports",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "extract-text-reports": {
+            "main": [
+                [
+                    {
+                        "node": "group-reports",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "group-reports": {
+            "main": [
+                [
+                    {
+                        "node": "sales-director-agent",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "openai-chat-model-director": {
+            "ai_languageModel": [
+                [
+                    {
+                        "node": "sales-director-agent",
+                        "type": "ai_languageModel",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "sales-director-agent": {
+            "main": [
+                [
+                    {
+                        "node": "send-email-director",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}

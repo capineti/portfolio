@@ -1,0 +1,378 @@
+{
+    "name": "Headless Generator - LOVABLE HYBRID (FIXED)",
+    "nodes": [
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "generar-ui-lovable",
+                "responseMode": "responseNode",
+                "options": {
+                    "allowedOrigins": "*"
+                }
+            },
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2.1,
+            "position": [
+                200,
+                300
+            ],
+            "id": "webhook-lovable",
+            "name": "Webhook: Recibir Prompt",
+            "webhookId": "lovable-figma-001"
+        },
+        {
+            "parameters": {
+                "jsCode": "// Extraer datos del plugin de Figma\nconst body = $input.first().json.body;\n\nconst userPrompt = body.prompt || \"Create a dashboard\";\nconst figmaVariables = body.figmaVariables || {};\n\nconsole.log('📥 Received from Figma:');\nconsole.log('  Prompt:', userPrompt);\nconsole.log('  Variables:', figmaVariables);\n\nreturn [{\n  json: {\n    userPrompt: userPrompt,\n    figmaVariables: figmaVariables,\n    // Extraer colores y spacing\n    primaryColor: figmaVariables.primaryColor || '#0066FF',\n    secondaryColor: figmaVariables.secondaryColor || '#6B7280',\n    backgroundColor: figmaVariables.backgroundColor || '#F9FAFB',\n    spacing: figmaVariables.spacing || 24,\n    borderRadius: figmaVariables.borderRadius || 12\n  }\n}];"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                400,
+                300
+            ],
+            "id": "extract-variables",
+            "name": "Extraer Variables Figma"
+        },
+        {
+            "parameters": {
+                "promptType": "define",
+                "text": "={{ $json.userPrompt }}",
+                "options": {
+                    "systemMessage": "Eres un Experto en Sistemas de Diseño. Tu trabajo es traducir peticiones de usuario en búsquedas técnicas precisas.\n\nINPUT: \"Login page\"\nOUTPUT: \"Input Field, Primary Button, Link Text, Card Container, Form Label\"\n\nINPUT: \"Dashboard\"\nOUTPUT: \"Sidebar Navigation, Data Card, Chart Container, User Avatar, Top Navbar\"\n\nSOLO devuelve la lista de componentes separados por comas."
+                }
+            },
+            "type": "@n8n/n8n-nodes-langchain.agent",
+            "typeVersion": 1.6,
+            "position": [
+                600,
+                300
+            ],
+            "id": "component-strategist",
+            "name": "Estratega: Identificar Componentes"
+        },
+        {
+            "parameters": {
+                "model": "gpt-4o-mini",
+                "options": {}
+            },
+            "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+            "typeVersion": 1,
+            "position": [
+                600,
+                520
+            ],
+            "id": "openai-strategist",
+            "name": "OpenAI Model",
+            "credentials": {
+                "openAiApi": {
+                    "id": "O37TWRmsjgm0WBxD",
+                    "name": "OpenAi account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "mode": "load",
+                "pineconeIndex": {
+                    "__rl": true,
+                    "value": "design-system",
+                    "mode": "list"
+                },
+                "prompt": "={{ $json.output }}",
+                "topK": 10,
+                "options": {}
+            },
+            "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+            "typeVersion": 1.3,
+            "position": [
+                800,
+                300
+            ],
+            "id": "pinecone-search",
+            "name": "Pinecone: Buscar Componentes",
+            "credentials": {
+                "pineconeApi": {
+                    "id": "p2NsNz1SPkez82z5",
+                    "name": "PineconeApi account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "options": {}
+            },
+            "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+            "typeVersion": 1.2,
+            "position": [
+                800,
+                520
+            ],
+            "id": "embeddings-openai",
+            "name": "Embeddings OpenAI",
+            "credentials": {
+                "openAiApi": {
+                    "id": "O37TWRmsjgm0WBxD",
+                    "name": "OpenAi account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "jsCode": "// Preparar contexto con componentes de Pinecone\nconst pineconeResults = $input.all();\nconst extractedData = $('Extraer Variables Figma').first().json;\n\nconst components = [];\npineconeResults.forEach(item => {\n  const doc = item.json.document || item.json;\n  const meta = doc.metadata || {};\n  const name = meta.componentName || meta.name;\n  const key = meta.componentKey || meta.key;\n  \n  if (name && key && name !== 'unknown') {\n    if (!components.find(c => c.key === key)) {\n      components.push({\n        name: name,\n        key: key,\n        description: (doc.pageContent || '').substring(0, 120)\n      });\n    }\n  }\n});\n\nconsole.log(`📦 Found ${components.length} components from Pinecone`);\n\nreturn [{\n  json: {\n    userPrompt: extractedData.userPrompt,\n    figmaVariables: extractedData.figmaVariables,\n    availableComponents: components,\n    componentsDescription: components.map(c => `${c.name} (key: ${c.key})`).join(', ')\n  }\n}];"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                1000,
+                300
+            ],
+            "id": "prepare-context",
+            "name": "Preparar Contexto"
+        },
+        {
+            "parameters": {
+                "jsCode": "// Construir prompt enriquecido para Lovable\nconst data = $input.first().json;\n\nconst lovablePrompt = `Create a beautiful, modern UI for: ${data.userPrompt}\n\nDesign System Variables:\n- Primary Color: ${data.figmaVariables.primaryColor || '#0066FF'}\n- Background: ${data.figmaVariables.backgroundColor || '#F9FAFB'}\n- Border Radius: ${data.figmaVariables.borderRadius || 12}px\n- Spacing: ${data.figmaVariables.spacing || 24}px\n\nDesign Principles:\n- Use generous spacing and padding (60-80px)\n- Add depth with shadows and elevation\n- Create clear visual hierarchy\n- Use the provided color palette\n- Make it feel premium and polished\n\nComponents needed:\n${data.componentsDescription}\n\nStyle inspiration: Modern SaaS (Stripe, Linear, Vercel)`;\n\nconst lovableUrl = `https://lovable.dev/build?prompt=${encodeURIComponent(lovablePrompt)}`;\n\nconsole.log('🎨 Lovable URL generated');\nconsole.log('📝 Prompt length:', lovablePrompt.length);\n\nreturn [{\n  json: {\n    lovableUrl: lovableUrl,\n    lovablePrompt: lovablePrompt,\n    originalData: data\n  }\n}];"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                1200,
+                300
+            ],
+            "id": "build-lovable-url",
+            "name": "Construir Lovable URL"
+        },
+        {
+            "parameters": {
+                "jsCode": "// MODO MANUAL: Retornar URL para que el usuario abra Lovable\nconst data = $input.first().json;\n\nconsole.log('🌐 Manual mode: User will open Lovable manually');\n\nreturn [{\n  json: {\n    mode: 'manual',\n    lovableUrl: data.lovableUrl,\n    instructions: 'Open Lovable manually, generate the design, then paste the code back',\n    originalData: data.originalData\n  }\n}];"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                1600,
+                300
+            ],
+            "id": "lovable-manual-mode",
+            "name": "Modo Manual: Usuario Abre Lovable"
+        },
+        {
+            "parameters": {
+                "promptType": "define",
+                "text": "=Eres un experto en análisis de código UI y mapeo de componentes.\n\n**CÓDIGO HTML/REACT DE LOVABLE:**\n{{ $json.lovableCode || 'No code provided yet' }}\n\n**COMPONENTES DISPONIBLES EN FIGMA:**\n{{ JSON.stringify($json.originalData.availableComponents, null, 2) }}\n\n**VARIABLES DE DISEÑO:**\n{{ JSON.stringify($json.originalData.figmaVariables, null, 2) }}\n\n---\n\n## TU MISIÓN\n\n1. **Analiza el código** de Lovable\n2. **Identifica elementos** (headers, buttons, inputs, cards, etc.)\n3. **Mapea cada elemento** a:\n   - `TEXT_NODE` para textos y títulos\n   - `COMPONENT` usando los componentes de Figma disponibles\n   - `FRAME` para contenedores y layouts\n4. **Usa las variables** de diseño para colores y spacing\n\n---\n\n## FORMATO DE SALIDA\n\nDevuelve SOLO JSON sin markdown:\n\n```json\n{\n  \"layoutMode\": \"VERTICAL\",\n  \"padding\": 80,\n  \"spacing\": 48,\n  \"background\": \"[USA LA VARIABLE backgroundColor]\",\n  \"children\": [\n    {\n      \"type\": \"FRAME\",\n      \"name\": \"Hero Section\",\n      \"layoutMode\": \"VERTICAL\",\n      \"padding\": 60,\n      \"background\": \"linear-gradient(135deg, [primaryColor] 0%, [secondaryColor] 100%)\",\n      \"children\": [\n        {\n          \"type\": \"TEXT_NODE\",\n          \"role\": \"Title\",\n          \"text\": \"[EXTRAER DEL HTML]\"\n        },\n        {\n          \"type\": \"COMPONENT\",\n          \"key\": \"[KEY REAL DEL COMPONENTE DE FIGMA]\",\n          \"text\": \"[TEXTO DEL BOTÓN]\"\n        }\n      ]\n    }\n  ]\n}\n```\n\n**REGLAS:**\n- Usa SOLO las keys de componentes que existen en Figma\n- Aplica las variables de diseño (colores, spacing, borderRadius)\n- Mantén la estructura visual de Lovable pero con tus componentes\n- NO inventes keys\n\n**RESPONDE SOLO CON JSON. SIN MARKDOWN.**",
+                "options": {
+                    "temperature": 0.3
+                }
+            },
+            "type": "@n8n/n8n-nodes-langchain.agent",
+            "typeVersion": 3,
+            "position": [
+                1800,
+                300
+            ],
+            "id": "claude-mapper",
+            "name": "Claude Vision: Mapear a Componentes"
+        },
+        {
+            "parameters": {
+                "model": "claude-3-5-sonnet-20240620",
+                "options": {
+                    "temperature": 0.3,
+                    "maxTokens": 4000
+                }
+            },
+            "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+            "typeVersion": 1.1,
+            "position": [
+                1800,
+                520
+            ],
+            "id": "claude-model-mapper",
+            "name": "Claude Sonnet",
+            "credentials": {
+                "anthropicApi": {
+                    "id": "WkRj3vctpxPVdcg0",
+                    "name": "Anthropic account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "jsCode": "// Validar y limpiar JSON del mapper\nconst aiOutput = $input.first().json.output;\n\nlet cleanOutput = aiOutput.trim();\ncleanOutput = cleanOutput.replace(/```json/g, '').replace(/```/g, '').trim();\n\nconst firstBracket = cleanOutput.indexOf('{');\nif (firstBracket !== -1) {\n  cleanOutput = cleanOutput.substring(firstBracket);\n}\n\nlet parsedData;\ntry {\n  parsedData = JSON.parse(cleanOutput);\n  console.log('✅ JSON válido generado');\n  \n  if (!parsedData.children || !Array.isArray(parsedData.children)) {\n    throw new Error('Missing children array');\n  }\n  \n  // Asegurar defaults\n  parsedData.layoutMode = parsedData.layoutMode || 'VERTICAL';\n  parsedData.padding = parsedData.padding || 60;\n  parsedData.spacing = parsedData.spacing || 32;\n  \n  console.log(`📊 Structure: ${parsedData.children.length} root children`);\n  \n} catch (err) {\n  console.error('❌ Parse error:', err.message);\n  throw new Error('Failed to parse mapper output: ' + err.message);\n}\n\nreturn [{ json: parsedData }];"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                2000,
+                300
+            ],
+            "id": "validate-output",
+            "name": "Validar JSON Final"
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={{ $json }}",
+                "options": {
+                    "responseHeaders": {
+                        "entries": [
+                            {
+                                "name": "Access-Control-Allow-Origin",
+                                "value": "*"
+                            },
+                            {
+                                "name": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ]
+                    }
+                }
+            },
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1.4,
+            "position": [
+                2200,
+                300
+            ],
+            "id": "respond-webhook",
+            "name": "Responder a Plugin"
+        }
+    ],
+    "connections": {
+        "Webhook: Recibir Prompt": {
+            "main": [
+                [
+                    {
+                        "node": "Extraer Variables Figma",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Extraer Variables Figma": {
+            "main": [
+                [
+                    {
+                        "node": "Estratega: Identificar Componentes",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Estratega: Identificar Componentes": {
+            "main": [
+                [
+                    {
+                        "node": "Pinecone: Buscar Componentes",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "OpenAI Model": {
+            "ai_languageModel": [
+                [
+                    {
+                        "node": "Estratega: Identificar Componentes",
+                        "type": "ai_languageModel",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Pinecone: Buscar Componentes": {
+            "main": [
+                [
+                    {
+                        "node": "Preparar Contexto",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Embeddings OpenAI": {
+            "ai_embedding": [
+                [
+                    {
+                        "node": "Pinecone: Buscar Componentes",
+                        "type": "ai_embedding",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Preparar Contexto": {
+            "main": [
+                [
+                    {
+                        "node": "Construir Lovable URL",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Construir Lovable URL": {
+            "main": [
+                [
+                    {
+                        "node": "Modo Manual: Usuario Abre Lovable",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Modo Manual: Usuario Abre Lovable": {
+            "main": [
+                [
+                    {
+                        "node": "Claude Vision: Mapear a Componentes",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Claude Vision: Mapear a Componentes": {
+            "main": [
+                [
+                    {
+                        "node": "Validar JSON Final",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Claude Sonnet": {
+            "ai_languageModel": [
+                [
+                    {
+                        "node": "Claude Vision: Mapear a Componentes",
+                        "type": "ai_languageModel",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Validar JSON Final": {
+            "main": [
+                [
+                    {
+                        "node": "Responder a Plugin",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "active": true,
+    "settings": {
+        "executionOrder": "v1"
+    }
+}

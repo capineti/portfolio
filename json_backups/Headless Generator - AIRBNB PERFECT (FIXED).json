@@ -1,0 +1,332 @@
+{
+    "name": "Headless Generator (FIXED)",
+    "nodes": [
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "generar-ui-airbnb",
+                "responseMode": "responseNode",
+                "options": {
+                    "allowedOrigins": "*"
+                }
+            },
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2.1,
+            "position": [
+                0,
+                0
+            ],
+            "id": "769c771e-228c-445f-b627-3c673c63f9be",
+            "name": "Webhook",
+            "webhookId": "3b9c9b97-fb62-4032-bf93-5389cff5c06a"
+        },
+        {
+            "parameters": {
+                "mode": "load",
+                "pineconeIndex": {
+                    "__rl": true,
+                    "value": "design-system",
+                    "mode": "list"
+                },
+                "prompt": "={{ $json.body.prompt }}",
+                "topK": 12,
+                "options": {}
+            },
+            "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+            "typeVersion": 1.3,
+            "position": [
+                208,
+                0
+            ],
+            "id": "0866ebd0-7f44-42bf-98e9-5caa9f16fbbe",
+            "name": "Pinecone Search",
+            "credentials": {
+                "pineconeApi": {
+                    "id": "p2NsNz1SPkez82z5",
+                    "name": "PineconeApi account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "options": {}
+            },
+            "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+            "typeVersion": 1.2,
+            "position": [
+                208,
+                224
+            ],
+            "id": "f8c78c6a-7c26-45e7-97cb-59d7f69cf63a",
+            "name": "Embeddings OpenAI",
+            "credentials": {
+                "openAiApi": {
+                    "id": "O37TWRmsjgm0WBxD",
+                    "name": "OpenAi account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "jsCode": "// Preparar contexto ROBUSTO para Pinecone (Fix Estructura Document)\nconst pineconeResults = $input.all();\nconst userPrompt = $('Webhook').item.json.body.prompt;\n\nconsole.log('🔍 Analyzing Pinecone Results:', pineconeResults.length);\n\n// Extraer componentes únicos con lógica defensiva\nconst componentsByType = {};\n\npineconeResults.forEach(item => {\n  // 1. Detectar dónde está la metadata (Tu caso es json.document.metadata)\n  const doc = item.json.document || item.json;\n  const metadata = doc.metadata || doc || {};\n  \n  // 2. Normalizar nombres y keys\n  const name = metadata.componentName || metadata.name || 'unknown';\n  const key = metadata.componentKey || metadata.key || metadata.figmaId || 'unknown';\n  const desc = metadata.description || doc.pageContent || '';\n  \n  // 3. Solo añadir si tenemos una key válida\n  if (key !== 'unknown' && !componentsByType[name]) {\n    componentsByType[name] = {\n      name: name,\n      key: key,\n      description: desc.substring(0, 300)\n    };\n  }\n});\n\nconst availableComponents = Object.values(componentsByType);\n\nconsole.log('📦 Valid Components Found:', availableComponents.length);\n\n// Construir descripción enriquecida\nlet componentsDescription = '';\nif (availableComponents.length > 0) {\n  componentsDescription = availableComponents\n    .map(comp => `  - **${comp.name}** (Key: \"${comp.key}\")\\n    Desc: ${comp.description}`)\n    .join('\\n\\n');\n} else {\n  componentsDescription = \"No se encontraron componentes específicos. Usa placeholders genéricos.\";\n}\n\nreturn [{\n  json: {\n    userPrompt: userPrompt,\n    componentsDescription: componentsDescription,\n    debugCount: availableComponents.length\n  }\n}];"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                512,
+                0
+            ],
+            "id": "4c1aa95b-bb53-4d1f-8067-acd84d7864a7",
+            "name": "Preparar Contexto"
+        },
+        {
+            "parameters": {
+                "promptType": "define",
+                "text": "==Eres un diseñador de interfaces UI/UX de clase mundial, conocido por tu creatividad y atención al detalle.\\n\\n**OBJETIVO:**\\nDiseñar una interfaz en Figma (JSON) que cumpla con el prompt del usuario, siendo VISUALMENTE RICO y CREATIVO. No te limites a estructuras básicas.\\n\\n**PROMPT USUARIO:**\\n{{ $json.userPrompt }}\\n\\n**COMPONENTES DISPONIBLES (Pinecone):**\\n{{ $json.componentsDescription }}\\n\\n---\\n\\n## 🎨 REGLAS DE CREATIVIDAD (IMPORTANTE)\\n1. **VARIEDAD:** No hagas siempre lo mismo. Si piden un dashboard, piensa en layouts asimétricos, sidebars, headers grandes, etc.\\n2. **LOGOS:** Si el usuario pide un logo y no hay componente de imagen, **CRÉALO** usando un `TEXT_NODE` con `role: \\\"Title\\\"`, fuente grande (24-32px) y texto creativo (ej: \\\"Airbnb\\\", \\\"TravelApp\\\"). ¡No lo omitas!\\n3. **IMÁGENES IA:** Si el usuario pide una imagen específica (ej: \\\"Paisaje nórdico\\\"), usa `type: \\\"IMAGE\\\"` con `text: \\\"Paisaje nórdico\\\"`, `width`: 1440 (o lo que toque) y `height`: 400.\\n4. **INPUTS CON ETIQUETAS:** Si usas inputs, añade siempre un `TEXT_NODE` pequeño encima o dentro que diga qué es (ej: \\\"Ubicación\\\", \\\"Llegada\\\", \\\"Huéspedes\\\"). No pongas inputs mudos.\\n5. **TEXTOS REALISTAS:** Usa textos reales, no \\\"Lorem Ipsum\\\". Si es una tarjeta de casa, pon \\\"Villa en Bali - $120/noche\\\".\\n\\n---\\n\\n## 📐 REGLAS TÉCNICAS (NO ROMPER)\\n1. **GRID SYSTEM:** Para muchas tarjetas (ej: 12), usa la estructura: `Grid Container (Vertical) -> [Row 1, Row 2...]`. Máximo 3-4 items por fila.\\n2. **COMPONENTES:** Usa `type: \\\"COMPONENT\\\"` con la `key` exacta si existe.\\n3. **CONTENEDOR:** Todo debe estar dentro de un `Main Container` vertical.\\n\\n---\\n\\n## 📝 FORMATO JSON (ESTRUCTURA PLANA Y SEPARADA)\\n\\n```json\\n{\\n  \\\"type\\\": \\\"FRAME\\\",\\n  \\\"name\\\": \\\"App Container\\\",\\n  \\\"layoutMode\\\": \\\"VERTICAL\\\",\\n  \\\"padding\\\": 0,\\n  \\\"spacing\\\": 0,\\n  \\\"background\\\": \\\"#FFFFFF\\\",\\n  \\\"children\\\": [\\n    {\\n      \\\"type\\\": \\\"FRAME\\\",\\n      \\\"name\\\": \\\"Navbar Section\\\",\\n      \\\"layoutMode\\\": \\\"HORIZONTAL\\\",\\n      \\\"padding\\\": 20,\\n      \\\"primaryAxisAlignItems\\\": \\\"SPACE_BETWEEN\\\",\\n      \\\"children\\\": [\\n        { \\\"type\\\": \\\"TEXT_NODE\\\", \\\"role\\\": \\\"Title\\\", \\\"text\\\": \\\"✨ TravelApp\\\" },\\n        { \\\"type\\\": \\\"FRAME\\\", \\\"name\\\": \\\"Nav Links\\\", \\\"children\\\": [...] }\\n      ]\\n    },\\n    {\\n      \\\"type\\\": \\\"IMAGE\\\",\\n      \\\"text\\\": \\\"Hero Image: Tropical Beach\\\",\\n      \\\"width\\\": 1440,\\n      \\\"height\\\": 400\\n    },\\n    {\\n      \\\"type\\\": \\\"FRAME\\\",\\n      \\\"name\\\": \\\"Search Section\\\",\\n      \\\"layoutMode\\\": \\\"HORIZONTAL\\\",\\n      \\\"spacing\\\": 16,\\n      \\\"children\\\": [\\n        {\\n          \\\"type\\\": \\\"FRAME\\\",\\n          \\\"layoutMode\\\": \\\"VERTICAL\\\",\\n          \\\"children\\\": [\\n             { \\\"type\\\": \\\"TEXT_NODE\\\", \\\"text\\\": \\\"Donde?\\\", \\\"fontSize\\\": 12 },\\n             { \\\"type\\\": \\\"COMPONENT\\\", \\\"key\\\": \\\"...\\\", \\\"text\\\": \\\"Buscar destino...\\\" }\\n          ]\\n        }\\n      ]\\n    },\\n    {\\n      \\\"type\\\": \\\"FRAME\\\",\\n      \\\"name\\\": \\\"Grid Section\\\",\\n      \\\"layoutMode\\\": \\\"VERTICAL\\\",\\n      \\\"children\\\": [...]\\n    }\\n  ]\\n}\\n```\\n\\nResponde SOLO con JSON válido.",
+                "options": {}
+            },
+            "type": "@n8n/n8n-nodes-langchain.agent",
+            "typeVersion": 3,
+            "position": [
+                720,
+                0
+            ],
+            "id": "8820ff3a-ab4c-4703-a857-e72478a21c2a",
+            "name": "Gemini: Diseñar UI"
+        },
+        {
+            "parameters": {
+                "jsCode": "// 1. Input completo desde Gemini\nconst data = $json;\n\n// 2. Extraer texto REAL del LLM.\n//   - Caso nuevo: data.output (actual Gemini Agent)\n//   - Caso antiguo (por si queda algún histórico): data.payload[0].output\nlet rawText = '';\n\nif (typeof data.output === 'string' && data.output.trim() !== '') {\n  rawText = data.output;\n} else if (Array.isArray(data.payload) && data.payload[0]?.output) {\n  rawText = data.payload[0].output;\n} else {\n  throw new Error('No LLM output found in $.output ni en payload[0].output');\n}\n\n// 3. Limpiar fences ```json ``` si existen\nrawText = rawText\n  .replace(/```json/gi, '')\n  .replace(/```/g, '')\n  .trim();\n\n// 4. Parsear a JSON\nlet ui;\ntry {\n  ui = JSON.parse(rawText);\n} catch (e) {\n  throw new Error('LLM output is not valid JSON: ' + e.message);\n}\n\n// 5. Validación mínima Figma UI\nif (typeof ui !== 'object' || Array.isArray(ui) || !ui.type) {\n  throw new Error('Parsed UI is not a valid Figma UI object');\n}\n\n// 6. Devolver UI limpia\nreturn [{ json: ui }];\n"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                1072,
+                0
+            ],
+            "id": "623aa142-4595-4bdf-91ec-475f56716fa9",
+            "name": "Validar JSON"
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={{ $json }}",
+                "options": {
+                    "responseHeaders": {
+                        "entries": [
+                            {
+                                "name": "Access-Control-Allow-Origin",
+                                "value": "*"
+                            },
+                            {
+                                "name": "Access-Control-Allow-Methods",
+                                "value": "POST, GET, OPTIONS"
+                            },
+                            {
+                                "name": "Access-Control-Allow-Headers",
+                                "value": "Content-Type"
+                            }
+                        ]
+                    }
+                }
+            },
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1.4,
+            "position": [
+                1680,
+                -128
+            ],
+            "id": "c27d026d-6c7b-48eb-b59a-6c6d086027e3",
+            "name": "Responder a Plugin"
+        },
+        {
+            "parameters": {
+                "modelName": "models/gemini-1.5-pro-latest",
+                "options": {
+                    "temperature": 0.9
+                }
+            },
+            "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+            "typeVersion": 1,
+            "position": [
+                736,
+                224
+            ],
+            "id": "3dfdbd88-9afa-4c93-a42d-7b31287907ad",
+            "name": "Google Gemini Pro",
+            "credentials": {
+                "googlePalmApi": {
+                    "id": "A4DmOX9XoJsDMGIX",
+                    "name": "Google Gemini(PaLM) Api account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "jsCode": "// Normalize UI output to match the plugin's expected schema (A-style)\n//\n// Goals:\n// - COMPONENT: move `text` into `props.text`\n// - TEXT_NODE: rename `color` -> `fontColor`\n// - Align: rename `crossAxisAlignItems` -> `counterAxisAlignItems`\n// - Width: coerce large numeric widths to \"FILL\"\n// - (Optional) avoid children inside COMPONENT (plugin often ignores them)\n\nfunction isObj(v) {\n  return v && typeof v === 'object' && !Array.isArray(v);\n}\n\nfunction normalizeWidth(node) {\n  if (!node) return;\n  if (typeof node.width === 'number') {\n    // pragmatic rule: if it's essentially \"full width\", convert to \"FILL\"\n    if (node.width >= 1000) node.width = \"FILL\";\n  }\n  // If width is something else, leave it\n}\n\nfunction normalizeTextNode(node) {\n  if (node.type !== \"TEXT_NODE\") return;\n\n  // color -> fontColor\n  if (node.color && !node.fontColor) {\n    node.fontColor = node.color;\n    delete node.color;\n  }\n}\n\nfunction normalizeAlign(node) {\n  if (!isObj(node)) return;\n\n  // crossAxisAlignItems -> counterAxisAlignItems\n  if (node.crossAxisAlignItems && !node.counterAxisAlignItems) {\n    node.counterAxisAlignItems = node.crossAxisAlignItems;\n    delete node.crossAxisAlignItems;\n  }\n}\n\nfunction normalizeComponent(node) {\n  if (node.type !== \"COMPONENT\") return;\n\n  // text -> props.text\n  if (typeof node.text === \"string\") {\n    node.props = node.props && isObj(node.props) ? node.props : {};\n    if (node.props.text === undefined) node.props.text = node.text;\n    delete node.text;\n  }\n\n  // If component has children but no props, create a safe props hint\n  // (Hypothesis: plugin ignores COMPONENT.children, prefers props-only)\n  if (Array.isArray(node.children)) {\n    node.props = node.props && isObj(node.props) ? node.props : {};\n\n    // collect text from children as fallback\n    const texts = [];\n    for (const ch of node.children) {\n      if (ch && ch.type === \"TEXT_NODE\" && typeof ch.text === \"string\") texts.push(ch.text);\n    }\n    if (texts.length && node.props.content === undefined) {\n      node.props.content = texts.join(\" | \");\n    }\n\n    // remove children to match A-style strictly\n    delete node.children;\n  }\n}\n\nfunction walk(node) {\n  if (Array.isArray(node)) return node.map(walk);\n  if (!isObj(node)) return node;\n\n  normalizeAlign(node);\n  normalizeWidth(node);\n  normalizeTextNode(node);\n  normalizeComponent(node);\n\n  // recurse into children\n  if (Array.isArray(node.children)) {\n    node.children = node.children.map(walk);\n  }\n  return node;\n}\n\n// Input from \"Validar JSON\" might be an object or an array\nlet ui = $json;\n\n// Si viene como array, nos quedamos con el primer root\nif (Array.isArray(ui)) {\n  ui = ui[0];\n}\n\nui = walk(ui);\n\nreturn [{ json: ui }];\n"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                1312,
+                0
+            ],
+            "id": "60682ecf-0233-494f-bf31-9d0327277afe",
+            "name": "Normalize UI to Plugin Schema"
+        },
+        {
+            "parameters": {
+                "dataTableId": {
+                    "__rl": true,
+                    "value": "DItViTlGReZeI1ks",
+                    "mode": "list",
+                    "cachedResultName": "figma_headless_sessions",
+                    "cachedResultUrl": "/projects/4GLzpDdUGYQOiIUs/datatables/DItViTlGReZeI1ks"
+                },
+                "columns": {
+                    "mappingMode": "defineBelow",
+                    "value": {
+                        "payload": "={{ JSON.stringify($json) }}"
+                    },
+                    "matchingColumns": [
+                        "payload"
+                    ],
+                    "schema": [
+                        {
+                            "id": "payload",
+                            "displayName": "payload",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "readOnly": false,
+                            "removed": false
+                        }
+                    ],
+                    "attemptToConvertTypes": false,
+                    "convertFieldsToString": false
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.dataTable",
+            "typeVersion": 1,
+            "position": [
+                1696,
+                96
+            ],
+            "id": "5307ade4-f79d-49ba-8d7f-5c3d53e0a746",
+            "name": "Insert row"
+        }
+    ],
+    "pinData": {},
+    "connections": {
+        "Webhook": {
+            "main": [
+                [
+                    {
+                        "node": "Pinecone Search",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Pinecone Search": {
+            "main": [
+                [
+                    {
+                        "node": "Preparar Contexto",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Embeddings OpenAI": {
+            "ai_embedding": [
+                [
+                    {
+                        "node": "Pinecone Search",
+                        "type": "ai_embedding",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Preparar Contexto": {
+            "main": [
+                [
+                    {
+                        "node": "Gemini: Diseñar UI",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Gemini: Diseñar UI": {
+            "main": [
+                [
+                    {
+                        "node": "Validar JSON",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Validar JSON": {
+            "main": [
+                [
+                    {
+                        "node": "Normalize UI to Plugin Schema",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Google Gemini Pro": {
+            "ai_languageModel": [
+                [
+                    {
+                        "node": "Gemini: Diseñar UI",
+                        "type": "ai_languageModel",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Normalize UI to Plugin Schema": {
+            "main": [
+                [
+                    {
+                        "node": "Insert row",
+                        "type": "main",
+                        "index": 0
+                    },
+                    {
+                        "node": "Responder a Plugin",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Insert row": {
+            "main": [
+                []
+            ]
+        }
+    },
+    "active": true,
+    "settings": {
+        "executionOrder": "v1"
+    },
+    "versionId": "dabb378a-70d2-4f60-bed8-a29fa79a01f8",
+    "meta": {
+        "instanceId": "3efa0810f678680b3ab9873a809d017fbd7c8833aae452b14a057994d649074b"
+    },
+    "id": "5hbatcxpA4URbAEy",
+    "tags": []
+}

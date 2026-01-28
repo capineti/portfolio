@@ -1,0 +1,121 @@
+{
+    "name": "Consolidador Dashboard - Archivos a JSON",
+    "nodes": [
+        {
+            "parameters": {},
+            "name": "Start",
+            "type": "n8n-nodes-base.start",
+            "typeVersion": 1,
+            "position": [
+                240,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "// PARSER INTELIGENTE: Convierte el texto de los GDocs al formato JSON del Dashboard\n\nconst items = $input.all();\nconst results = [];\n\nfor (const item of items) {\n  const json = item.json;\n  const cualitativo = json.cualitativo_text || \"\";\n  const cuantitativo = json.cuantitativo_text || \"\";\n  const transcript = json.transcript_text || \"\";\n  \n  // 1. Extraer PUNTUACIÓN GLOBAL\n  const scoreMatch = cualitativo.match(/PUNTUACIÓN GLOBAL:\\s*(\\d+)%/i);\n  const score = scoreMatch ? parseInt(scoreMatch[1]) : 0;\n\n  // 2. Extraer Secciones de Evaluación\n  const sections = [];\n  const sectionRegex = /###\\s*\\d+\\.\\s*([^\\(]+)\\((\\d+)%\\)\\s*\\n\\*\\*\\*Puntuación:\\s*(\\d+\\/\\d+)[^\\n]*\\n(.*)/g;\n  let match;\n  // Nota: Regex simplificada, puede requerir ajuste según variaciones de salto de línea\n  // Implementación robusta buscaría bloques\n  \n  // 3. Extraer Fortalezas\n  const strengths = [];\n  const strengthsBlock = cualitativo.split(\"✅ FORTALEZAS PRINCIPALES\")[1]?.split(\"🚀 ÁREAS DE MEJORA\")[0] || \"\";\n  const strengthLines = strengthsBlock.split(\"\\n\").filter(line => line.trim().startsWith(\"-\"));\n  strengthLines.forEach(s => strengths.push({ title: \"Fortaleza\", content: s.replace(\"-\", \"\").trim() }));\n\n  // 4. Extraer Mejoras\n  const improvements = [];\n  const improvementsBlock = cualitativo.split(\"🚀 ÁREAS DE MEJORA\")[1]?.split(\"💡 CONCLUSIÓN\")[0] || \"\";\n  // Lógica simple para extraer bloques numerados **1. Título**\n  // ... (Simplificado para el ejemplo)\n\n  // 5. Construir Objeto de Llamada\n  const callObject = {\n    id: \"meet-\" + Math.floor(Math.random() * 10000), // ID generado\n    client: json.client_name || \"Cliente Desconocido\",\n    date: json.date || new Date().toISOString().split(\"T\")[0],\n    topic: \"Venta Revisions\",\n    status: score > 70 ? \"Analizado\" : \"Revisar\",\n    score: score,\n    summary_folder_link: json.folder_link,\n    details: {\n      qualitativeAnalysis: {\n        title: \"EVALUACIÓN DETALLADA\",\n        sections: [\n             { title: \"1. Estructura\", score: \"0/0\", content: \"Autogenerado desde n8n...\" }\n             // Aquí irían las secciones parseadas\n        ],\n        strengths: strengths,\n        improvements: [], // Rellenar con lógica similar\n        conclusion: cualitativo.split(\"💡 CONCLUSIÓN\")[1]?.trim() || \"\"\n      }\n    }\n  };\n\n  results.push({ json: callObject });\n}\n\nreturn results;"
+            },
+            "name": "Parser Cualitativo (JS)",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 1,
+            "position": [
+                900,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "operation": "list",
+                "useString": true,
+                "folderId": "YOUR_WEEK_FOLDER_ID"
+            },
+            "name": "Listar Carpetas Agentes",
+            "type": "n8n-nodes-base.googleDrive",
+            "typeVersion": 1,
+            "position": [
+                460,
+                300
+            ],
+            "notes": "Configura aquí el ID de la carpeta 'Semana 03 - 2026'"
+        },
+        {
+            "parameters": {
+                "content": "{\n  \"metadata\": {\n    \"weekLabel\": \"Semana 03 - 2026\",\n    \"generatedAt\": \"{{ new Date().toISOString() }}\"\n  },\n  \"weekly_stats\": {\n    \"week_id\": \"2026-w03\",\n    \"agents\": [\n       // DATA AGGREGATED FROM PREVIOUS NODES\n    ]\n  }\n}",
+                "type": "json"
+            },
+            "name": "Estructura Final JSON",
+            "type": "n8n-nodes-base.set",
+            "typeVersion": 1,
+            "position": [
+                1100,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "operation": "upload",
+                "fileContent": "={{ JSON.stringify($json) }}",
+                "name": "dashboard_export.json",
+                "parents": [
+                    "YOUR_WEEK_FOLDER_ID"
+                ],
+                "options": {
+                    "mimeType": "application/json"
+                }
+            },
+            "name": "Guardar en Drive",
+            "type": "n8n-nodes-base.googleDrive",
+            "typeVersion": 1,
+            "position": [
+                1300,
+                300
+            ]
+        }
+    ],
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Listar Carpetas Agentes",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Listar Carpetas Agentes": {
+            "main": [
+                [
+                    {
+                        "node": "Parser Cualitativo (JS)",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Parser Cualitativo (JS)": {
+            "main": [
+                [
+                    {
+                        "node": "Estructura Final JSON",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Estructura Final JSON": {
+            "main": [
+                [
+                    {
+                        "node": "Guardar en Drive",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}

@@ -1,0 +1,10 @@
+{
+  "name": "Headless FINAL v1.3",
+  "id": "headless-generator",
+  "api": "1.0.0",
+  "main": "code.js",
+  "ui": "ui.html",
+  "editorType": [
+    "figma"
+  ]
+}

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+
+        h2 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #333;
+        }
+
+        .section {
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #0066FF;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: #0052CC;
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .output {
+            background: #f8f9fa;
+            border: 1px solid #e1e4e8;
+            border-radius: 6px;
+            padding: 12px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            margin-top: 12px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .stat {
+            background: #f0f7ff;
+            padding: 8px;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: 600;
+            color: #0066FF;
+        }
+
+        .copy-btn {
+            margin-top: 8px;
+            padding: 8px;
+            font-size: 12px;
+        }
+
+        .success {
+            color: #28a745;
+            font-size: 12px;
+            margin-top: 8px;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>✨ Variables Extractor</h2>
+
+    <div class="section">
+        <button id="extractBtn">Extract Figma Variables</button>
+
+        <div id="stats" class="stats" style="display: none;">
+            <div class="stat">
+                <div class="stat-label">Spacing</div>
+                <div class="stat-value" id="spacingCount">0</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Colors</div>
+                <div class="stat-value" id="colorsCount">0</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Numbers</div>
+                <div class="stat-value" id="numbersCount">0</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Strings</div>
+                <div class="stat-value" id="stringsCount">0</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section" id="descriptionSection" style="display: none;">
+        <h3 style="font-size: 14px; margin-bottom: 8px;">📝 Description for n8n Prompt</h3>
+        <div id="description" class="output"></div>
+        <button class="copy-btn" onclick="copyDescription()">Copy Description</button>
+        <div class="success" id="descSuccess">✅ Copied!</div>
+    </div>
+
+    <div class="section" id="pineconeSection" style="display: none;">
+        <h3 style="font-size: 14px; margin-bottom: 8px;">🔗 Pinecone Format (JSON)</h3>
+        <div id="pinecone" class="output"></div>
+        <button class="copy-btn" onclick="copyPinecone()">Copy JSON</button>
+        <div class="success" id="pineSuccess">✅ Copied!</div>
+    </div>
+
+    <script>
+        const extractBtn = document.getElementById('extractBtn');
+
+        extractBtn.addEventListener('click', () => {
+            extractBtn.disabled = true;
+            extractBtn.textContent = 'Extracting...';
+            parent.postMessage({ pluginMessage: { type: 'extract-variables' } }, '*');
+        });
+
+        window.onmessage = (event) => {
+            const msg = event.data.pluginMessage;
+
+            if (msg.type === 'variables-extracted') {
+                const { raw, pineconeFormat, description } = msg.data;
+
+                // Update stats
+                document.getElementById('stats').style.display = 'grid';
+                document.getElementById('spacingCount').textContent = raw.spacing.length;
+                document.getElementById('colorsCount').textContent = raw.colors.length;
+                document.getElementById('numbersCount').textContent = raw.numbers.length;
+                document.getElementById('stringsCount').textContent = raw.strings.length;
+
+                // Show description
+                document.getElementById('descriptionSection').style.display = 'block';
+                document.getElementById('description').textContent = description;
+
+                // Show Pinecone format
+                document.getElementById('pineconeSection').style.display = 'block';
+                document.getElementById('pinecone').textContent = JSON.stringify(pineconeFormat, null, 2);
+
+                // Reset button
+                extractBtn.disabled = false;
+                extractBtn.textContent = 'Extract Again';
+            }
+        };
+
+        function copyDescription() {
+            const text = document.getElementById('description').textContent;
+            navigator.clipboard.writeText(text);
+            const success = document.getElementById('descSuccess');
+            success.style.display = 'block';
+            setTimeout(() => success.style.display = 'none', 2000);
+        }
+
+        function copyPinecone() {
+            const text = document.getElementById('pinecone').textContent;
+            navigator.clipboard.writeText(text);
+            const success = document.getElementById('pineSuccess');
+            success.style.display = 'block';
+            setTimeout(() => success.style.display = 'none', 2000);
+        }
+    </script>
+</body>
+
+</html>

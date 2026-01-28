@@ -1,0 +1,1011 @@
+/* LAB MODE GLOBAL RESET */
+.playground-container.atomic-lab-mode {
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+/* HEADER */
+.lab-header {
+    background: var(--bg-header-dark);
+    color: #fff;
+    padding: 1.5rem 2rem 0 2rem;
+    flex-shrink: 0;
+    border-bottom: 1px solid #333;
+}
+
+.lab-title {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.lab-title h1 {
+    font-family: 'Suisse Intl', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    margin: 0;
+}
+
+.mode-badge {
+    background: var(--lx-orange);
+    /* Use Brand Orange */
+    color: white;
+    font-size: 0.65rem;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+    letter-spacing: 0.1em;
+}
+
+.back-btn {
+    color: #e5e5e5;
+    /* Higher contrast */
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    transition: color 0.2s;
+    font-weight: 500;
+    opacity: 0.8;
+}
+
+.back-btn:hover {
+    opacity: 1;
+    color: #fff;
+}
+
+.lab-nav {
+    display: flex;
+    gap: 2rem;
+    overflow-x: auto;
+    padding-bottom: 0;
+}
+
+.lab-tab {
+    background: none;
+    border: none;
+    color: #888;
+    padding: 1rem 0;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.lab-tab:hover {
+    color: #ccc;
+}
+
+.lab-tab.active {
+    color: var(--lx-orange);
+    border-bottom-color: var(--lx-orange);
+}
+
+/* MAIN CONTENT */
+.lab-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 3rem;
+    padding-bottom: 8rem;
+    /* Extra padding to prevent bottom cutoff */
+    background-color: #f4f4f4;
+    /* Neutral grey for contrast */
+}
+
+[data-theme="dark"] .lab-content {
+    background-color: #000;
+}
+
+.lab-section {
+    max-width: 1400px;
+    margin: 0 auto 5rem auto;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.section-header {
+    font-size: 2rem;
+    margin-bottom: 3rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-primary);
+    font-family: 'Suisse Intl Mono', monospace;
+}
+
+/* FOUNDATIONS GRID */
+.foundation-group {
+    margin-bottom: 4rem;
+}
+
+.foundation-group h3 {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+    letter-spacing: 0.05em;
+}
+
+.swatch-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1.5rem;
+}
+
+.swatch {
+    background: var(--bg-card);
+    padding: 0.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--border-color);
+}
+
+.swatch-color {
+    height: 80px;
+    border-radius: 6px;
+    margin-bottom: 0.75rem;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.swatch-info {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.8rem;
+    font-family: 'DM Mono', monospace;
+    padding: 0 0.5rem 0.5rem 0.5rem;
+}
+
+.swatch-name {
+    font-weight: bold;
+    margin-bottom: 2px;
+}
+
+.swatch-hex {
+    color: var(--text-muted);
+}
+
+/* TYPE STACK */
+.type-stack {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 2rem;
+    overflow-x: auto;
+    /* Allow internal scroll if needed */
+}
+
+.type-row {
+    display: grid;
+    grid-template-columns: 80px 1fr auto;
+    align-items: baseline;
+    gap: 1.5rem;
+    padding: 1.5rem 0;
+    border-bottom: 1px solid var(--border-color);
+    min-width: 500px;
+    /* Ensure rows don't collapse too small */
+}
+
+.type-row:last-child {
+    border-bottom: none;
+}
+
+.type-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+}
+
+.type-demo {
+    /* Grid cell - takes available space */
+}
+
+.type-meta {
+    font-size: 0.75rem;
+    font-family: monospace;
+    color: var(--text-muted);
+    text-align: right;
+    white-space: nowrap;
+}
+
+.type-demo.display {
+    font-size: 2.5rem;
+    font-weight: 300;
+}
+
+.type-demo.heading {
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.type-demo.body {
+    font-size: 1rem;
+    font-weight: 400;
+}
+
+.type-demo.caption {
+    font-size: 0.85rem;
+    font-weight: 400;
+    color: var(--text-muted);
+}
+
+/* OKLCH PALETTE GEN */
+.palette-container {
+    background: #050510;
+    /* Dark bg specifically for palette display */
+    padding: 2rem;
+    border-radius: 12px;
+    margin-top: 2rem;
+    color: white;
+}
+
+.palette-header-row {
+    display: grid;
+    grid-template-columns: 80px repeat(9, 1fr);
+    margin-bottom: 0.5rem;
+    text-align: center;
+    font-family: monospace;
+    font-size: 0.8rem;
+    color: #fff;
+}
+
+.palette-row {
+    display: grid;
+    grid-template-columns: 80px repeat(9, 1fr);
+    height: 60px;
+}
+
+.palette-label {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #fff;
+    padding-left: 0.5rem;
+}
+
+.color-step {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transition: transform 0.2s;
+}
+
+.color-step:hover {
+    transform: scale(1.1);
+    z-index: 2;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    border-radius: 4px;
+}
+
+/* SPACING & RADIUS */
+.spacing-list,
+.radius-list {
+    display: flex;
+    gap: 2rem;
+    align-items: flex-end;
+}
+
+.space-box,
+.radius-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.space-viz {
+    background: var(--phase-connection);
+    opacity: 0.5;
+}
+
+.radius-viz {
+    width: 60px;
+    height: 60px;
+    border: 2px solid var(--text-primary);
+    background: transparent;
+}
+
+.space-label,
+.radius-label {
+    font-size: 0.75rem;
+    font-family: monospace;
+    color: var(--text-muted);
+}
+
+/* ATOMS & PRIMITIVES GRID */
+.atom-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 2rem;
+}
+
+.atom-box {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: center;
+    padding: 2rem;
+    background: var(--bg-app);
+    /* Check contrast */
+    border: 1px dashed #ccc;
+    border-radius: 8px;
+}
+
+.atom-name {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-family: monospace;
+    margin-top: auto;
+}
+
+.atom-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+}
+
+.atom-value {
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    font-weight: 400;
+}
+
+/* COMPONENT INVENTORY */
+.component-inventory {
+    display: flex;
+    flex-direction: column;
+    gap: 4rem;
+    align-items: flex-start;
+}
+
+.spec-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.spec-render {
+    /* This is critical: no flex stretch, no hidden overflow that clips shadows */
+    padding: 2px;
+    /* Prevent shadow clip */
+}
+
+.spec-meta {
+    display: flex;
+    justify-content: space-between;
+    border-top: 1px solid var(--border-color);
+    padding-top: 0.5rem;
+    font-family: monospace;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.panel-inventory {
+    display: flex;
+    flex-direction: column;
+    gap: 4rem;
+}
+
+.demo-hover-card {
+    padding: 1rem 2rem;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+}
+
+.demo-hover-card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+.vendor-screen-container {
+    display: flex;
+    flex-direction: column;
+    /* Removed gap to allow tighter spacing between header and cards */
+    padding-bottom: var(--space-lg);
+}
+
+/* Header Section */
+.vendor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-md) 0 0 0;
+    margin-bottom: var(--space-sm);
+    /* Tighter margin (approx 8-12px) */
+}
+
+.vendor-info-block h1 {
+    font-size: 2.2rem;
+    font-weight: 400;
+    color: var(--text-main);
+    margin-bottom: 0.5rem;
+}
+
+.vendor-info-block p {
+    font-size: 1.1rem;
+    color: var(--text-muted);
+}
+
+/* Go back button */
+.vs-back-btn {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    transition: color 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.vs-back-btn:hover {
+    color: var(--primary);
+}
+
+/* Black Summary Cards */
+.vendor-summary-cards {
+    display: flex;
+    gap: var(--space-lg);
+    margin-bottom: 4rem;
+    height: 200px;
+    /* Fixed height to ensure perfect alignment */
+    align-items: stretch;
+    /* Ensure children match height */
+}
+
+/* Base Card Style */
+.v-summary-card {
+    background: #1a1a1a;
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    color: #ffffff;
+    box-shadow: var(--shadow-card);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+    /* Fill the parent flex container */
+    min-height: 160px;
+}
+
+/* Score Card (Left) */
+.score-card-expanded {
+    flex: 2;
+    /* Takes separate width */
+}
+
+.score-row {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.score-progress-bar {
+    flex: 1;
+    height: 8px;
+    /* Thinner elegant bar */
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+    max-width: 300px;
+    /* Limit width */
+}
+
+.score-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #F97316 0%, #FB923C 100%);
+    /* Orange gradient */
+    border-radius: 4px;
+}
+
+/* Status Cards Group (Right) */
+.status-cards-group {
+    flex: 3;
+    display: flex;
+    gap: var(--space-lg);
+    align-items: stretch;
+    /* Stretch children (square cards) */
+    height: 100%;
+    /* Fill parent */
+}
+
+.square-card {
+    flex: 1;
+    /* Equal width */
+    align-items: center;
+    /* Center content */
+    text-align: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 1.5rem 1rem;
+    height: 100%;
+    /* Explicitly fill height */
+}
+
+.square-card .v-card-title {
+    margin-bottom: 0;
+    font-size: 0.9rem;
+}
+
+.square-card .v-card-value {
+    font-size: 2.5rem;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+/* Text Colors for Statuses - All Force White per user request */
+.text-active,
+.text-closed,
+.text-lost {
+    color: #ffffff;
+    font-family: inherit;
+    /* Ensure consistent font */
+}
+
+.v-card-title {
+    font-size: 1rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: var(--space-md);
+}
+
+.v-card-value {
+    font-size: 3rem;
+    font-weight: 300;
+    line-height: 1;
+}
+
+.v-card-sub {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.5);
+    margin-top: var(--space-sm);
+}
+
+/* Calls Grid */
+.calls-grid-section h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: var(--space-md);
+    color: var(--text-main);
+}
+
+.calls-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+}
+
+/* Call Card Style (resembling Agent Card) */
+.call-card {
+    background: var(--bg-card);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    /* Default shadow */
+    padding: var(--space-md);
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border: 1px solid transparent;
+    /* Prepare for hover/active */
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Active cards (not closed/lost) pop more */
+.call-card:not(.dark-variant) {
+    border-color: rgba(249, 115, 22, 0.3);
+    /* Subtle orange border for active */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.call-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-card);
+    border-color: var(--primary);
+}
+
+/* Dark Variant for specific statuses (Cerrado/Perdido) */
+/* Dark Variant (Cerrado/Perdido) - Make them recede/inactive */
+.call-card.dark-variant {
+    background: var(--bg-subtle);
+    /* Variable or fallback needed */
+    background-color: rgba(128, 128, 128, 0.1);
+    /* Fallback generic muted */
+    border: 1px solid var(--border);
+    opacity: 0.6;
+    /* Visually push back */
+    box-shadow: none;
+    /* Flat */
+}
+
+/* Remove forced white text overrides - let them inherit muted styles */
+.call-card.dark-variant .client-name,
+.call-card.dark-variant .cd-val {
+    color: var(--text-muted);
+    /* Muted text for inactive */
+}
+
+.call-card.dark-variant .call-date,
+.call-card.dark-variant .cd-label {
+    color: var(--text-light);
+    /* Even lighter for labels */
+}
+
+/* Hover effects for dark variant - subtle lift */
+.call-card.dark-variant:hover {
+    opacity: 0.8;
+    transform: translateY(-2px);
+    border-color: var(--text-muted);
+}
+
+/* Improve badge contrast in dark/gray variant cards */
+.call-card.dark-variant .score-high {
+    background: rgba(74, 222, 128, 0.2);
+    /* Lighter green bg */
+    color: #4ade80;
+    /* Lighter green text */
+}
+
+.call-card.dark-variant .score-med {
+    background: rgba(250, 204, 21, 0.2);
+    /* Lighter yellow bg */
+    color: #facc15;
+    /* Lighter yellow text */
+}
+
+.call-card.dark-variant .score-low {
+    background: rgba(220, 38, 38, 0.3);
+    /* Stronger red background for separation */
+    color: #FECACA;
+    /* Very light red for maximum contrast */
+    font-weight: 700;
+    /* Bolder text to help readability */
+}
+
+.call-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.client-name {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--text-main);
+}
+
+.call-date {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.call-score-badge {
+    align-self: flex-start;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.score-high {
+    background: rgba(22, 163, 74, 0.1);
+    color: #16a34a;
+}
+
+.score-med {
+    background: rgba(234, 179, 8, 0.1);
+    color: #ca8a04;
+}
+
+.score-low {
+    background: rgba(220, 38, 38, 0.1);
+    color: #dc2626;
+}
+
+.call-details {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 8px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+}
+
+.cd-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+}
+
+.cd-label {
+    color: var(--text-muted);
+}
+
+.cd-val {
+    font-weight: 500;
+    color: var(--text-main);
+}
+
+/* Weeks List Layout */
+.weeks-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    max-height: 240px;
+    /* Reduced further to ensure scroll ratio provides space for clipping */
+    overflow-y: auto;
+    padding-right: 12px;
+    /* Space for scrollbar */
+}
+
+/* Custom Scrollbar for Weeks List */
+.weeks-list::-webkit-scrollbar {
+    width: 5px;
+    /* Clearly visible width */
+    /* Restored for visibility */
+}
+
+.weeks-list::-webkit-scrollbar-track {
+    background: transparent;
+    margin: 4px 0;
+    /* Resetting margins to allow full vertical travel */
+}
+
+.weeks-list::-webkit-scrollbar-thumb {
+    background-color: var(--lx-orange);
+    border-radius: 99px;
+    border-block: 85px solid transparent;
+    /* Very aggressive clipping to leave a small 'pill' indicator */
+    background-clip: content-box;
+    /* Ensures the background doesn't bleed into the border area */
+    min-height: 20px;
+    /* Prevent vanishing */
+}
+
+.week-row {
+    background: var(--bg-card);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    border: 1px solid transparent;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.2s ease;
+}
+
+.week-row:hover {
+    transform: translateX(4px);
+    border-color: var(--primary);
+    box-shadow: var(--shadow-card);
+}
+
+.week-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.week-label {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.week-date {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.week-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+}
+
+.week-count {
+    font-size: 0.9rem;
+    font-weight: 600;
+    background: var(--bg-app);
+    /* Slightly darker/lighter than card */
+    padding: 6px 12px;
+    border-radius: 20px;
+    color: var(--text-main);
+}
+
+.week-arrow {
+    font-size: 1.2rem;
+    color: var(--primary);
+    font-weight: 600;
+    transition: transform 0.2s ease;
+}
+
+.week-row:hover .week-arrow {
+    transform: translateX(4px);
+}
+
+/* Breadcrumb Navigation */
+.week-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: var(--space-md);
+    font-size: 0.9rem;
+    cursor: pointer;
+    width: fit-content;
+}
+
+.week-breadcrumb span {
+    color: var(--text-muted);
+    transition: color 0.2s;
+}
+
+.week-breadcrumb:hover span:first-child {
+    color: var(--primary);
+    text-decoration: underline;
+}
+
+.week-breadcrumb .separator {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+.week-breadcrumb .current {
+    font-weight: 700;
+    color: var(--text-main);
+    pointer-events: none;
+}
+
+/* Current Week Highlight */
+.week-row.current-week {
+    border-color: var(--lx-orange);
+    background-color: rgba(240, 113, 44, 0.1);
+    /* More evident orange tint */
+}
+
+/* Section Header Row */
+.section-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-md);
+}
+
+.section-header-row h3 {
+    margin-bottom: 0;
+    /* Remove default margin as container handles it */
+}
+
+/* Report Status Badge */
+.report-status-badge {
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    padding: 6px 12px;
+    border-radius: 6px;
+    letter-spacing: 0.05em;
+}
+
+.report-status-badge.status-sent {
+    background-color: #DCFCE7;
+    /* Light Green */
+    color: #166534;
+    /* Dark Green */
+    border: 1px solid #BBF7D0;
+}
+
+.report-status-badge.status-current {
+    background-color: #FFEDD5;
+    /* Light Orange */
+    color: #9A3412;
+    /* Dark Orange */
+    border: 1px solid #FED7AA;
+}
+
+/* Header Toggle Button */
+.grid-toggle-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 8px;
+    border-radius: var(--radius-sm);
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.grid-toggle-btn:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    color: var(--text-main);
+}
+
+.grid-toggle-btn.active {
+    color: var(--lx-orange);
+    background-color: rgba(240, 113, 44, 0.1);
+}
+
+/* Months Grid View */
+.months-grid-view {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    /* 6 columns x 2 rows = 12 months (Compact) */
+    gap: 0.5rem;
+    padding: 0.5rem 0;
+    margin-top: 0.5rem;
+    animation: fadeIn 0.3s ease;
+}
+
+.month-card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    aspect-ratio: 1.5;
+    /* Rectangular, shorter */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 500;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.month-card:hover:not(.disabled):not(.active) {
+    border-color: var(--lx-orange);
+    color: var(--lx-orange);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}
+
+.month-card.active {
+    background-color: var(--lx-orange);
+    border-color: var(--lx-orange);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(240, 113, 44, 0.3);
+}
+
+/* Future Month (Disabled) - Neutral Light Grey */
+.month-card.disabled {
+    background-color: #E0E0E0 !important;
+    /* Neutral Grey */
+    color: #9E9E9E !important;
+    border-color: transparent !important;
+    cursor: default;
+}
+
+/* Past Month - Neutral Dark Grey */
+.month-card.past {
+    background-color: #616161 !important;
+    /* Neutral Dark Grey */
+    color: #FFFFFF !important;
+    border-color: transparent !important;
+}
+
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

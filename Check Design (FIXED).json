@@ -1,0 +1,133 @@
+{
+    "name": "Check Design (FIXED)",
+    "nodes": [
+        {
+            "parameters": {
+                "path": "check-design",
+                "responseMode": "responseNode",
+                "options": {
+                    "allowedOrigins": "*"
+                }
+            },
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2.1,
+            "position": [
+                0,
+                0
+            ],
+            "id": "webhook-check",
+            "name": "Webhook"
+        },
+        {
+            "parameters": {
+                "operation": "get",
+                "dataTableId": {
+                    "__rl": true,
+                    "value": "DItViTlGReZeI1ks",
+                    "mode": "list",
+                    "cachedResultName": "figma_headless_sessions",
+                    "cachedResultUrl": "/projects/4GLzpDdUGYQOiIUs/datatables/DItViTlGReZeI1ks"
+                },
+                "limit": 1,
+                "options": {
+                    "sort": {
+                        "sortRules": [
+                            {
+                                "column": "id",
+                                "direction": "desc"
+                            }
+                        ]
+                    }
+                }
+            },
+            "type": "n8n-nodes-base.dataTable",
+            "typeVersion": 1,
+            "position": [
+                220,
+                0
+            ],
+            "id": "get-rows",
+            "name": "Get row(s)"
+        },
+        {
+            "parameters": {
+                "jsCode": "// Parsear payload + Usar ID como Timestamp infalible\ntry {\n  const item = $input.first().json;\n  const payload = item.payload;\n  // Usamos el ID como 'reloj'. El ID siempre sube (7, 8, 9...).\n  // Es mucho más seguro que procesar fechas.\n  const safeTimestamp = Number(item.id) || Date.now();\n  \n  if (!payload) {\n    return [{ json: { result: { error: 'Empty payload' } } }];\n  }\n\n  const parsedDesign = JSON.parse(payload);\n  \n  const response = {\n    design: parsedDesign,\n    timestamp: safeTimestamp, \n    source: 'n8n-db-id'\n  };\n  \n  return [{ json: { result: response } }];\n\n} catch (error) {\n  return [{ json: {\n    result: {\n      type: 'error',\n      message: 'Processing Error',\n      details: error.message\n    }\n  } }];\n}"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                440,
+                0
+            ],
+            "id": "safe-parse",
+            "name": "Parsear Payload Seguro"
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={{ $json.result }}",
+                "options": {
+                    "responseHeaders": {
+                        "entries": [
+                            {
+                                "name": "Access-Control-Allow-Origin",
+                                "value": "*"
+                            },
+                            {
+                                "name": "Access-Control-Allow-Methods",
+                                "value": "GET, POST, OPTIONS"
+                            },
+                            {
+                                "name": "Access-Control-Allow-Headers",
+                                "value": "Content-Type"
+                            }
+                        ]
+                    }
+                }
+            },
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1.5,
+            "position": [
+                660,
+                0
+            ],
+            "id": "respond-webhook",
+            "name": "Respond to Webhook"
+        }
+    ],
+    "connections": {
+        "Webhook": {
+            "main": [
+                [
+                    {
+                        "node": "Get row(s)",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Get row(s)": {
+            "main": [
+                [
+                    {
+                        "node": "Parsear Payload Seguro",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Parsear Payload Seguro": {
+            "main": [
+                [
+                    {
+                        "node": "Respond to Webhook",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}

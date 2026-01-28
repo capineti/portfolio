@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sergio Cabrera | Senior Product & AI Designer</title>
+    <style>
+        :root {
+            --bg-color: #f4f4f4;
+            --text-color: #1a1a1a;
+            --accent-color: #0044cc;
+            --border-color: #000;
+            --wireframe-bg: #fff;
+            --placeholder-bg: #e0e0e0;
+            --grid-line: rgba(0, 0, 0, 0.05);
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-color);
+            background-image: linear-gradient(var(--grid-line) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+            background-size: 20px 20px;
+            color: var(--text-color);
+            margin: 0;
+            line-height: 1.6;
+            padding-bottom: 100px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* WIREFRAME COMPONENT STYLES */
+        .wireframe-block {
+            border: 2px solid var(--border-color);
+            background: var(--wireframe-bg);
+            padding: 40px;
+            margin-bottom: 60px;
+            box-shadow: 4px 4px 0px rgba(0, 0, 0, 1);
+            position: relative;
+        }
+
+        .section-label {
+            position: absolute;
+            top: -12px;
+            left: 20px;
+            background: var(--border-color);
+            color: white;
+            padding: 2px 10px;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: bold;
+        }
+
+        h1,
+        h2,
+        h3 {
+            margin-top: 0;
+            text-transform: uppercase;
+            letter-spacing: -0.5px;
+        }
+
+        h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+            line-height: 1.1;
+        }
+
+        h2 {
+            font-size: 28px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid black;
+            padding-bottom: 10px;
+            display: inline-block;
+        }
+
+        h3 {
+            font-size: 20px;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .tag {
+            display: inline-block;
+            border: 1px solid black;
+            padding: 4px 12px;
+            font-size: 12px;
+            margin-right: 8px;
+            margin-bottom: 8px;
+            font-weight: 500;
+            background: #fff;
+        }
+
+        .hero {
+            text-align: center;
+            padding: 80px 40px;
+        }
+
+        .intro-text {
+            font-size: 20px;
+            max-width: 700px;
+            margin: 0 auto 40px auto;
+            color: #444;
+        }
+
+        /* CASE STUDY LAYOUT */
+        .case-study {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            align-items: center;
+        }
+
+        .case-study.reverse {
+            margin-top: 80px;
+            /* Extra space */
+        }
+
+        /* Alternate layout technique via order */
+        .case-study.reverse .content {
+            order: 2;
+        }
+
+        .case-study.reverse .visual {
+            order: 1;
+        }
+
+        .content {
+            padding-right: 20px;
+        }
+
+        .visual {}
+
+        /* IMAGE PLACEHOLDER */
+        .img-placeholder {
+            width: 100%;
+            aspect-ratio: 16/10;
+            background-color: var(--placeholder-bg);
+            border: 1px dashed #666;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+            position: relative;
+            cursor: help;
+            transition: background 0.2s;
+        }
+
+        .img-placeholder:hover {
+            background-color: #d4d4d4;
+        }
+
+        .img-placeholder::after {
+            content: "IMAGE PLACEHOLDER";
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 10px;
+            color: #666;
+            border: 1px solid #666;
+            padding: 2px 5px;
+        }
+
+        .img-suggestion {
+            font-weight: bold;
+            color: var(--accent-color);
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .img-desc {
+            font-size: 13px;
+            color: #555;
+            max-width: 80%;
+        }
+
+        ul {
+            padding-left: 20px;
+        }
+
+        li {
+            margin-bottom: 8px;
+            font-size: 15px;
+        }
+
+        /* BUTTONS */
+        .btn {
+            display: inline-block;
+            background: black;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            font-weight: bold;
+            margin-top: 20px;
+            transition: transform 0.1s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        @media(max-width: 768px) {
+
+            .case-study,
+            .case-study.reverse {
+                grid-template-columns: 1fr;
+            }
+
+            .case-study.reverse .content {
+                order: 1;
+            }
+
+            .case-study.reverse .visual {
+                order: 2;
+            }
+
+            h1 {
+                font-size: 36px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+
+        <!-- HERO SECTION -->
+        <div class="wireframe-block hero">
+            <span class="section-label">Hero Section</span>
+            <h1>Sergio Cabrera Capineti</h1>
+            <div class="intro-text">
+                <strong>Senior Product & Conversational Designer.</strong><br>
+                Orquesto sistemas donde la Inteligencia Artificial y la Experiencia Humana conversan.
+            </div>
+            <div>
+                <span class="tag">AI Workflows</span>
+                <span class="tag">Conversational Design</span>
+                <span class="tag">Design Systems</span>
+                <span class="tag">Product Strategy</span>
+            </div>
+        </div>
+
+        <!-- CASE STUDY 1: LXARCH -->
+        <div class="wireframe-block">
+            <span class="section-label">Case Study 01: AI Architecture</span>
+            <div class="case-study">
+                <div class="content">
+                    <h3>Floxfy / LxArch</h3>
+                    <h2>Orquestando Inteligencia de Ventas</h2>
+                    <p><strong>El Reto:</strong> Transformar cientos de horas de grabaciones de ventas (datos no
+                        estructurados) en insights accionables y coaching personalizado a escala, sin intervención
+                        humana masiva.</p>
+                    <p><strong>La Estrategia:</strong> Diseñé un ecosistema "Human-in-the-loop" liderado por agentes
+                        autónomos (Director, Auditor, Coach) usando <strong>n8n</strong> y
+                        <strong>OpenAI/Claude</strong>. Definí la 'Personalidad del Sistema' para asegurar adopción.</p>
+                    <ul>
+                        <li>Conversational Flows complejos con gestión de memoria.</li>
+                        <li>Dashboard de visualización de datos cualitativos.</li>
+                        <li>Iteración basada en análisis de sentimiento.</li>
+                    </ul>
+                    <a href="#" class="btn">Ver Case Study Completo →</a>
+                </div>
+                <div class="visual">
+                    <div class="img-placeholder">
+                        <span class="img-suggestion">IMAGEN SUGERIDA: Diagrama de Flujo (Blueprint)</span>
+                        <span class="img-desc">No muestres solo el dashboard final. Muestra una captura del workflow de
+                            n8n limpio o un diagrama esquemático que explique cómo el "Agente Auditor" procesa la data y
+                            se la pasa al "Agente Director". Esto demuestra pensamiento sistémico.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CASE STUDY 2: HEADLESS GENERATOR -->
+        <div class="wireframe-block">
+            <span class="section-label">Case Study 02: Design Ops Tooling</span>
+            <div class="case-study reverse">
+                <div class="visual">
+                    <div class="img-placeholder">
+                        <span class="img-suggestion">IMAGEN SUGERIDA: Split Screen (Código + UI)</span>
+                        <span class="img-desc">A la izquierda, el JSON/Prompt crudo. A la derecha, el componente UI de
+                            Figma generado perfectamente. Esto valida tu perfil "Técnico + Creativo"
+                            (Antigravity).</span>
+                    </div>
+                </div>
+                <div class="content">
+                    <h3>Headless Generator</h3>
+                    <h2>Automatizando la Creatividad UI</h2>
+                    <p><strong>La Innovación:</strong> Desarrollé una herramienta interna ('Headless Generator') para
+                        cerrar la brecha entre diseño visual y generación por IA, eliminando las alucionaciones
+                        aleatorias.</p>
+                    <p><strong>Cómo funciona:</strong> Integración de Figma Plugin + Pinecone (Vector DB) + Claude 3.5.
+                        El sistema recupera componentes reales de nuestro Design System y los ensambla semánticamente.
+                    </p>
+                    <ul>
+                        <li>Desarrollo de Plugin Figma (JS/HTML).</li>
+                        <li>RAG (Retrieval-Augmented Generation) para componentes UI.</li>
+                        <li>Reducción del tiempo de prototipado en un 70%.</li>
+                    </ul>
+                    <a href="#" class="btn">Ver Demo Técnica →</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- CASE STUDY 3: SALUTARE -->
+        <div class="wireframe-block">
+            <span class="section-label">Case Study 03: Healthcare UX</span>
+            <div class="case-study">
+                <div class="content">
+                    <h3>Salutare / NHS</h3>
+                    <h2>Diseño Crítico & Carga Cognitiva</h2>
+                    <p><strong>El Contexto:</strong> Entornos clínicos de alta presión donde un error de interpretación
+                        de datos puede afectar la seguridad del paciente.</p>
+                    <p><strong>La Solución:</strong> Reestructuración de la arquitectura de información priorizando
+                        claridad sobre estética. Implementación rigurosa de WCAG 2.1 y patrones de lectura rápida para
+                        reducir la fatiga cognitiva de los médicos.</p>
+                    <ul>
+                        <li>Service Design para flujos complejos.</li>
+                        <li>Accesibilidad como requerimiento funcional crítico.</li>
+                        <li>Mapas de calor y testing con usuarios reales.</li>
+                    </ul>
+                    <a href="#" class="btn">Ver Análisis UX →</a>
+                </div>
+                <div class="visual">
+                    <div class="img-placeholder">
+                        <span class="img-suggestion">IMAGEN SUGERIDA: Antes / Después (Formato Comparativo)</span>
+                        <span class="img-desc">Muestra una pantalla antigua saturada y difícil de leer, contrastada con
+                            tu rediseño limpio y estructurado. Usa anotaciones sobre la imagen destacando "Mejora de
+                            Contraste" o "Jerarquía Clara".</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+
+</html>

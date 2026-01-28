@@ -1,0 +1,647 @@
+{
+    "name": "Auto-Magic v35 (HYBRID + DESCRIPTIONS)",
+    "nodes": [
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "generar-ui-whatsapp",
+                "responseMode": "responseNode",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2.1,
+            "position": [
+                -480,
+                0
+            ],
+            "id": "webhook-whatsapp-v35",
+            "name": "Webhook WhatsApp",
+            "webhookId": "6215c704-c425-46a9-a8a6-338535560a47"
+        },
+        {
+            "parameters": {
+                "respondWith": "text",
+                "responseBody": "OK",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1.5,
+            "position": [
+                -280,
+                -180
+            ],
+            "id": "respond-wa-v35",
+            "name": "Responder WA Rapido"
+        },
+        {
+            "parameters": {
+                "rules": {
+                    "values": [
+                        {
+                            "conditions": {
+                                "options": {
+                                    "caseSensitive": true,
+                                    "leftValue": "",
+                                    "typeValidation": "strict",
+                                    "version": 2
+                                },
+                                "conditions": [
+                                    {
+                                        "leftValue": "={{ $json.body.data.messageType }}",
+                                        "rightValue": "=^(conversation|extendedTextMessage)$",
+                                        "operator": {
+                                            "type": "string",
+                                            "operation": "equals"
+                                        }
+                                    }
+                                ],
+                                "combinator": "and"
+                            },
+                            "renameOutput": true,
+                            "outputKey": "Texto"
+                        },
+                        {
+                            "conditions": {
+                                "options": {
+                                    "caseSensitive": true,
+                                    "leftValue": "",
+                                    "typeValidation": "strict",
+                                    "version": 2
+                                },
+                                "conditions": [
+                                    {
+                                        "leftValue": "={{ $json.body.data.messageType }}",
+                                        "rightValue": "audioMessage",
+                                        "operator": {
+                                            "type": "string",
+                                            "operation": "equals"
+                                        }
+                                    }
+                                ],
+                                "combinator": "and"
+                            },
+                            "renameOutput": true,
+                            "outputKey": "Audio"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.switch",
+            "typeVersion": 3.2,
+            "position": [
+                -280,
+                0
+            ],
+            "id": "switch-msg-type-v35",
+            "name": "Tipo Mensaje"
+        },
+        {
+            "parameters": {
+                "assignments": {
+                    "assignments": [
+                        {
+                            "name": "prompt",
+                            "value": "={{ $json.body.data.message.conversation || $json.body.data.message.extendedTextMessage.text }}",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "includeOtherFields": true,
+                "options": {}
+            },
+            "type": "n8n-nodes-base.set",
+            "typeVersion": 3.4,
+            "position": [
+                0,
+                -120
+            ],
+            "id": "set-text-prompt-v35",
+            "name": "Set Prompt (Texto)"
+        },
+        {
+            "parameters": {
+                "assignments": {
+                    "assignments": [
+                        {
+                            "name": "Mensaje de Audio",
+                            "value": "={{ $json.body.data.message.base64 }}",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "includeOtherFields": true,
+                "options": {}
+            },
+            "type": "n8n-nodes-base.set",
+            "typeVersion": 3.4,
+            "position": [
+                0,
+                140
+            ],
+            "id": "prep-audio-v35",
+            "name": "Prep Audio"
+        },
+        {
+            "parameters": {
+                "operation": "toBinary",
+                "sourceProperty": "Mensaje de Audio",
+                "options": {
+                    "mimeType": "audio/mp3"
+                }
+            },
+            "type": "n8n-nodes-base.convertToFile",
+            "typeVersion": 1.1,
+            "position": [
+                200,
+                140
+            ],
+            "id": "convert-audio-v35",
+            "name": "Convertir a Archivo"
+        },
+        {
+            "parameters": {
+                "resource": "audio",
+                "operation": "transcribe",
+                "binaryPropertyName": "=data",
+                "options": {}
+            },
+            "type": "@n8n/n8n-nodes-langchain.openAi",
+            "typeVersion": 1.8,
+            "position": [
+                400,
+                140
+            ],
+            "id": "transcribe-whisper-v35",
+            "name": "Whisper Transcribe",
+            "credentials": {
+                "openAiApi": {
+                    "id": "O37TWRmsjgm0WBxD",
+                    "name": "OpenAi account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "assignments": {
+                    "assignments": [
+                        {
+                            "name": "prompt",
+                            "value": "={{ $json.text }}",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "includeOtherFields": true,
+                "options": {}
+            },
+            "type": "n8n-nodes-base.set",
+            "typeVersion": 3.4,
+            "position": [
+                600,
+                140
+            ],
+            "id": "set-voice-prompt-v35",
+            "name": "Set Prompt (Voz)"
+        },
+        {
+            "parameters": {
+                "mode": "load",
+                "pineconeIndex": {
+                    "__rl": true,
+                    "value": "design-system",
+                    "mode": "list"
+                },
+                "prompt": "={{ $json.prompt }}",
+                "topK": 12,
+                "options": {}
+            },
+            "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+            "typeVersion": 1.3,
+            "position": [
+                840,
+                0
+            ],
+            "id": "pinecone-search-v35",
+            "name": "Pinecone Search",
+            "credentials": {
+                "pineconeApi": {
+                    "id": "p2NsNz1SPkez82z5",
+                    "name": "PineconeApi account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "options": {}
+            },
+            "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+            "typeVersion": 1.2,
+            "position": [
+                760,
+                280
+            ],
+            "id": "embeddings-openai-v35",
+            "name": "Embeddings OpenAI",
+            "credentials": {
+                "openAiApi": {
+                    "id": "O37TWRmsjgm0WBxD",
+                    "name": "OpenAi account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "jsCode": "// Preparar contexto HYBRID V35 (Recuperación + Descripciones Ricas)\n// 1. Rescate Prompt (Prioridad: Audio > Texto)\nconst pineconeResults = $input.all();\nconst webhookData = $('Webhook WhatsApp').first().json.body;\n\nlet userPrompt = \"Dashboard\";\nlet debugSource = \"Default\";\n\ntry {\n  const whisperNode = $('Whisper Transcribe').first();\n  if (whisperNode && whisperNode.json && whisperNode.json.text) {\n      userPrompt = whisperNode.json.text;\n      debugSource = \"Whisper (Audio)\";\n  } else {\n     const msgData = webhookData.data?.message || webhookData.message;\n     if (msgData) {\n        const txt = msgData.conversation || msgData.extendedTextMessage?.text;\n        if (txt) { userPrompt = txt; debugSource = \"Webhook (Text)\"; }\n     }\n  }\n} catch(e) {}\n\n// 2. Componentes (Formato RICO - Para que LLM sepa qué es cada cosa)\nconst componentsByType = {};\npineconeResults.forEach(item => {\n  const doc = item.json.document || item.json;\n  const metadata = doc.metadata || doc || {};\n  const name = metadata.componentName || metadata.name || 'unknown';\n  const key = metadata.componentKey || metadata.key || metadata.figmaId || 'unknown';\n  const desc = metadata.description || doc.pageContent || '';\n  if (key !== 'unknown' && !componentsByType[name]) {\n    componentsByType[name] = { name, key, description: desc.substring(0, 150) };\n  }\n});\nconst availableComponents = Object.values(componentsByType);\nlet componentsList = availableComponents.length > 0 \n    ? availableComponents.map(c => `- **${c.name}**\n   Key: \"${c.key}\"\n   Info: ${c.description}`).join('\\n\\n')\n    : \"(Usa componentes genéricos o Placeholders)\";\n\nconst whatsappMeta = {\n  instance: webhookData.instance || webhookData.body?.instance,\n  remoteJid: webhookData.data?.key?.remoteJid || webhookData.key?.remoteJid,\n  messageId: webhookData.data?.key?.id || webhookData.key?.id,\n  sender: webhookData.sender || webhookData.data?.participant\n};\n\nreturn [{\n  json: {\n    userPrompt: userPrompt,\n    debugSource: debugSource,\n    componentsList: componentsList,\n    whatsappMeta: whatsappMeta\n  }\n}];"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                1100,
+                0
+            ],
+            "id": "prep-context-v35",
+            "name": "Preparar Contexto"
+        },
+        {
+            "parameters": {
+                "promptType": "define",
+                "text": "==Eres un experto en diseño UI para Figma.\\n\\n**TU MISIÓN:**\\nCrear el JSON para un layout profesional siguiendo EXACTAMENTE la estructura \\\"Gold Standard\\\".\\n\\n**PROMPT DEL USUARIO:**\\n\"{{ $json.userPrompt }}\"\\n\\n**CATÁLOGO DE COMPONENTES DISPONIBLES:**\\n{{ $json.componentsList }}\\n\\n---\\n\\n## 🧱 ESTRUCTURA REQUIRED (GOLD STANDARD)\\nUsa esta estructura exacta. NO anides \\\"App Container\\\" dentro de nada más.\\n\\n```json\\n{\\n  \"type\": \"FRAME\",\\n  \"name\": \"Desktop 1440\",\\n  \"layoutMode\": \"VERTICAL\",\\n  \"padding\": 0,\\n  \"spacing\": 0,\\n  \"children\": [\\n     // 1. NAVBAR SECTION\\n     { \\n       \"type\": \"FRAME\", \"name\": \"Navbar Section\", \\n       \"layoutMode\": \"HORIZONTAL\", \"primaryAxisAlignItems\": \"SPACE_BETWEEN\",\\n       \"children\": [ ... ] \\n     },\\n     \\n     // 2. HERO SECTION (Imagen o Banner)\\n     { \\n       \"type\": \"IMAGE\", \"text\": \"Hero: Minimalist Scandinavian interior\", \\n       \"width\": 1440, \"height\": 400 \\n     },\\n     \\n     // 3. GRID SECTION (Aquí van las cards)\\n     { \\n       \"type\": \"FRAME\", \"name\": \"Grid Section\", \\n       \"layoutMode\": \"VERTICAL\", \\n       \"children\": [ ... LISTA PLANA DE COMPONENTES ... ] \\n     }\\n  ]\\n}\\n```\\n\\n## ⚠️ REGLAS CRÍTICAS PARA QUE FUNCIONE EL PLUGIN\\n1. **SELECCIÓN DE COMPONENTES:** Lee la \\\"Info\\\" del catálogo. Si el usuario pide \\\"12 cards\\\", busca un componente que parezca una CARD (ej: \\\"ListingCard\\\", \\\"PropertyCard\\\", \\\"Card v2\\\"). NO USES iconos pequeños ni radio buttons para el grid principal.\\n2. **PROPIEDAD TEXT:** Para cambiar el texto de un componente, usa la propiedad `text`. Ej: `{ \"type\": \"COMPONENT\", \"key\": \"...\", \"text\": \"$120/night - Bali Villa\" }`.\\n3. **GRID:** Pon todos los items (ej: 12 cards) como hijos directos de \\\"Grid Section\\\". NO crees filas (Rows) tú mismo; el plugin crea las filas automáticamente.\\n4. **IMÁGENES:** Si necesitas imágenes bonitas y no hay componente, usa `type: \"IMAGE\"`.\\n\\nResponde SOLO con el JSON.",
+                "options": {}
+            },
+            "type": "@n8n/n8n-nodes-langchain.agent",
+            "typeVersion": 3,
+            "position": [
+                1340,
+                0
+            ],
+            "id": "gemini-designer-v35",
+            "name": "Gemini: Diseñar UI (GOLD)"
+        },
+        {
+            "parameters": {
+                "modelName": "models/gemini-1.5-pro-latest",
+                "options": {
+                    "temperature": 0.4
+                }
+            },
+            "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+            "typeVersion": 1,
+            "position": [
+                1340,
+                240
+            ],
+            "id": "gemini-model-v35",
+            "name": "Google Gemini Pro",
+            "credentials": {
+                "googlePalmApi": {
+                    "id": "A4DmOX9XoJsDMGIX",
+                    "name": "Google Gemini(PaLM) Api account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "jsCode": "// VALIDAR JSON + LIMPIEZA MÍNIMA\nconst data = $input.first().json;\nlet rawText = '';\n\nif (typeof data.output === 'string') rawText = data.output;\nelse if (data.payload?.[0]?.output) rawText = data.payload[0].output;\nelse rawText = JSON.stringify(data.output || {});\n\nrawText = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();\n\nlet ui;\ntry {\n  const firstOpen = rawText.indexOf('{');\n  const lastClose = rawText.lastIndexOf('}');\n  if (firstOpen !== -1 && lastClose !== -1) {\n    rawText = rawText.substring(firstOpen, lastClose + 1);\n  }\n  ui = JSON.parse(rawText);\n} catch (e) {\n  throw new Error('Invalid JSON from LLM');\n}\n\n// Asegurar Root\nif (!ui.name) ui.name = \"Desktop 1440\";\nif (!ui.type) ui.type = \"FRAME\";\n\nreturn [{ json: ui }];"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                1660,
+                0
+            ],
+            "id": "validate-json-v35",
+            "name": "Validar JSON (Clean)"
+        },
+        {
+            "parameters": {
+                "jsCode": "// PLUGIN COMPATIBILITY ADJUSTER (V35 SAFE)\n\nfunction walk(node) {\n  if (!node || typeof node !== 'object') return;\n\n  // Verificación: NO mover text a props, dejarlo en raiz.\n  // Asegurar que si hay 'text' es string.\n  if (node.text && typeof node.text !== 'string') {\n     node.text = String(node.text);\n  }\n\n  // Recurse\n  if (node.children && Array.isArray(node.children)) {\n    node.children.forEach(walk);\n  }\n}\n\nlet ui = $input.first().json;\nwalk(ui);\n\nreturn [{ json: ui }];"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                1900,
+                0
+            ],
+            "id": "normalize-ui-v35",
+            "name": "Normalize UI (V35 SAFE)"
+        },
+        {
+            "parameters": {
+                "dataTableId": {
+                    "__rl": true,
+                    "value": "DItViTlGReZeI1ks",
+                    "mode": "list",
+                    "cachedResultName": "figma_headless_sessions",
+                    "cachedResultUrl": "/projects/4GLzpDdUGYQOiIUs/datatables/DItViTlGReZeI1ks"
+                },
+                "columns": {
+                    "mappingMode": "defineBelow",
+                    "value": {
+                        "payload": "={{ JSON.stringify($json) }}"
+                    },
+                    "matchingColumns": [
+                        "payload"
+                    ],
+                    "schema": [
+                        {
+                            "id": "payload",
+                            "displayName": "payload",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "readOnly": false,
+                            "removed": false
+                        }
+                    ],
+                    "attemptToConvertTypes": false,
+                    "convertFieldsToString": false
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.dataTable",
+            "typeVersion": 1,
+            "position": [
+                2140,
+                0
+            ],
+            "id": "insert-db-classic-v35",
+            "name": "Insertar en DB (CLASSIC)"
+        },
+        {
+            "parameters": {
+                "resource": "chat-api",
+                "operation": "read-messages",
+                "instanceName": "={{ $('Preparar Contexto').first().json.whatsappMeta.instance }}",
+                "remoteJid": "={{ $('Preparar Contexto').first().json.whatsappMeta.remoteJid }}",
+                "messageId": "={{ $('Preparar Contexto').first().json.whatsappMeta.messageId }}"
+            },
+            "type": "n8n-nodes-evolution-api.evolutionApi",
+            "typeVersion": 1,
+            "position": [
+                2400,
+                -100
+            ],
+            "id": "mark-read-v35",
+            "name": "Marcar OK",
+            "credentials": {
+                "evolutionApi": {
+                    "id": "4cfCLQllVGThdDvw",
+                    "name": "Evolution account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "resource": "messages-api",
+                "instanceName": "={{ $('Preparar Contexto').first().json.whatsappMeta.instance }}",
+                "remoteJid": "={{ $('Preparar Contexto').first().json.whatsappMeta.remoteJid }}",
+                "messageText": "✨ *UI Creada (V35 Hybrid)*\n\nComponentes recuperados con éxito (Descripción Rica).\nPlugin Format: Optimized.\n\nRevisa Figma.",
+                "options_message": {
+                    "delay": 1000
+                }
+            },
+            "type": "n8n-nodes-evolution-api.evolutionApi",
+            "typeVersion": 1,
+            "position": [
+                2640,
+                0
+            ],
+            "id": "send-whatsapp-v35",
+            "name": "Confirmar WhatsApp",
+            "credentials": {
+                "evolutionApi": {
+                    "id": "4cfCLQllVGThdDvw",
+                    "name": "Evolution account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "resource": "integrations-api",
+                "operation": "evolution-bot",
+                "instanceName": "={{ $('Preparar Contexto').first().json.whatsappMeta.instance }}",
+                "resourceForEvolutionBot": "changeStatusEvolutionBot",
+                "evolutionBotId": "={{ $('Preparar Contexto').first().json.whatsappMeta.messageId }}",
+                "remoteJid": "={{ $('Preparar Contexto').first().json.whatsappMeta.remoteJid }}",
+                "status": "closed"
+            },
+            "type": "n8n-nodes-evolution-api.evolutionApi",
+            "typeVersion": 1,
+            "position": [
+                2880,
+                0
+            ],
+            "id": "close-instance-v35",
+            "name": "Cerrar instancia",
+            "credentials": {
+                "evolutionApi": {
+                    "id": "4cfCLQllVGThdDvw",
+                    "name": "Evolution account"
+                }
+            }
+        }
+    ],
+    "connections": {
+        "Webhook WhatsApp": {
+            "main": [
+                [
+                    {
+                        "node": "Tipo Mensaje",
+                        "type": "main",
+                        "index": 0
+                    },
+                    {
+                        "node": "Responder WA Rapido",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Tipo Mensaje": {
+            "main": [
+                [
+                    {
+                        "node": "Set Prompt (Texto)",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Prep Audio",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Set Prompt (Texto)": {
+            "main": [
+                [
+                    {
+                        "node": "Pinecone Search",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Prep Audio": {
+            "main": [
+                [
+                    {
+                        "node": "Convertir a Archivo",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Convertir a Archivo": {
+            "main": [
+                [
+                    {
+                        "node": "Whisper Transcribe",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Whisper Transcribe": {
+            "main": [
+                [
+                    {
+                        "node": "Set Prompt (Voz)",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Set Prompt (Voz)": {
+            "main": [
+                [
+                    {
+                        "node": "Pinecone Search",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Embeddings OpenAI": {
+            "ai_embedding": [
+                [
+                    {
+                        "node": "Pinecone Search",
+                        "type": "ai_embedding",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Pinecone Search": {
+            "main": [
+                [
+                    {
+                        "node": "Preparar Contexto",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Preparar Contexto": {
+            "main": [
+                [
+                    {
+                        "node": "Gemini: Diseñar UI (GOLD)",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Google Gemini Pro": {
+            "ai_languageModel": [
+                [
+                    {
+                        "node": "Gemini: Diseñar UI (GOLD)",
+                        "type": "ai_languageModel",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Gemini: Diseñar UI (GOLD)": {
+            "main": [
+                [
+                    {
+                        "node": "Validar JSON (Clean)",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Validar JSON (Clean)": {
+            "main": [
+                [
+                    {
+                        "node": "Normalize UI (V35 SAFE)",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Normalize UI (V35 SAFE)": {
+            "main": [
+                [
+                    {
+                        "node": "Insertar en DB (CLASSIC)",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Insertar en DB (CLASSIC)": {
+            "main": [
+                [
+                    {
+                        "node": "Marcar OK",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Marcar OK": {
+            "main": [
+                [
+                    {
+                        "node": "Confirmar WhatsApp",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Confirmar WhatsApp": {
+            "main": [
+                [
+                    {
+                        "node": "Cerrar instancia",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
